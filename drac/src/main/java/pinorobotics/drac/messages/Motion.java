@@ -17,13 +17,13 @@
  */
 package pinorobotics.drac.messages;
 
-import java.util.Arrays;
+import pinorobotics.drac.Joints;
 
 /**
  * @author lambdaprime intid@protonmail.com
  */
 public record Motion(
-        double[] joints,
+        Joints joints,
         double x,
         double y,
         double z,
@@ -36,13 +36,13 @@ public record Motion(
         double accel) {
 
     public Motion() {
-        this(new double[] {}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        this(new Joints(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     @Override
     public String toString() {
         return "Motion [joints="
-                + Arrays.toString(joints)
+                + joints
                 + ", x="
                 + x
                 + ", y="

@@ -20,11 +20,20 @@ package pinorobotics.drac;
 /**
  * @author lambdaprime intid@protonmail.com
  */
-public interface CommandType {
-    /** Command field is not present inside the message received from the Command Server */
-    String NONE = "";
+public record CommandStatus(int status) {
+    public static final CommandStatus RECEIVED = new CommandStatus(0);
+    public static final CommandStatus EXECUTING = new CommandStatus(1);
+    public static final CommandStatus COMPLETED = new CommandStatus(2);
 
-    String MOTION = "motion";
-    String VERSION = "version";
-    String JOINT = "joint";
+    @Override
+    public final String toString() {
+        if (this.equals(RECEIVED)) return "RECEIVED";
+        else if (this.equals(EXECUTING)) return "EXECUTING";
+        else if (this.equals(COMPLETED)) return "COMPLETED";
+        else return "" + status;
+    }
+
+    public boolean isError() {
+        return status < 0;
+    }
 }

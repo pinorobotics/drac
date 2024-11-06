@@ -35,16 +35,7 @@ public class MotionHolder {
         try {
             motion =
                     new Motion(
-                            new double[] {
-                                message.get("j0", Double.class),
-                                message.get("j1", Double.class),
-                                message.get("j2", Double.class),
-                                message.get("j3", Double.class),
-                                message.get("j4", Double.class),
-                                message.get("j5", Double.class),
-                                message.get("j6", Double.class),
-                                message.get("j7", Double.class),
-                            },
+                            message.joints(),
                             message.get("x", Double.class),
                             message.get("y", Double.class),
                             message.get("z", Double.class),

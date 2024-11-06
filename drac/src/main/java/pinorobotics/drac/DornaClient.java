@@ -17,6 +17,7 @@
  */
 package pinorobotics.drac;
 
+import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
 import java.net.URI;
@@ -25,6 +26,7 @@ import java.net.http.WebSocket;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.impl.CommandServerListener;
+import pinorobotics.drac.impl.IdGenerator;
 import pinorobotics.drac.impl.MessageProcessor;
 import pinorobotics.drac.messages.Motion;
 
@@ -37,6 +39,7 @@ public class DornaClient extends IdempotentService {
     private static final XLogger LOGGER = XLogger.getLogger(DornaClient.class);
 
     private MessageProcessor messageProc = new MessageProcessor();
+    private IdGenerator idGenerator = new IdGenerator();
     private URI dornaUrl;
     private WebSocket webSocket;
 
@@ -53,6 +56,7 @@ public class DornaClient extends IdempotentService {
 
     /**
      * @return the current version of the firmware
+     * @see <a href="https://doc.dorna.ai/docs/cmd/version/">version command</a>
      */
     public int version() throws DornaClientException {
         start();
@@ -64,6 +68,37 @@ public class DornaClient extends IdempotentService {
             var future = messageProc.await(CommandType.VERSION);
             webSocket.request(1);
             return future.get().get("version", Integer.class);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DornaClientException(e);
+        }
+    }
+
+    /**
+     * @see <a href="https://doc.dorna.ai/docs/cmd/joint/">joint command</a>
+     */
+    public void joint(Joints joints) throws DornaClientException {
+        start();
+        LOGGER.info("Call joint command");
+        var id = idGenerator.nextId();
+        var command =
+                """
+                {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f}"""
+                        .formatted(
+                                CommandType.JOINT,
+                                id,
+                                joints.j0(),
+                                joints.j1(),
+                                joints.j2(),
+                                joints.j3(),
+                                joints.j4(),
+                                joints.j5(),
+                                joints.j6(),
+                                joints.j7());
+        try {
+            webSocket.sendText(command, true).get();
+            var future = messageProc.await(id);
+            webSocket.request(1);
+            Preconditions.equals(joints, future.get().joints());
         } catch (InterruptedException | ExecutionException e) {
             throw new DornaClientException(e);
         }

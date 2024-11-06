@@ -23,8 +23,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import pinorobotics.drac.CommandStatus;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.Message;
+import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
 
 /**
@@ -45,15 +47,29 @@ public class MessageProcessor {
             return;
         }
         var id = message.id();
-
         var future = pendingCommandsWithId.get(id);
         if (future != null) {
-            LOGGER.info("Command with id {0} completed: {1}", id, message);
-            future.complete(message);
+            var status =
+                    message.find("stat", Double.class)
+                            .map(s -> new CommandStatus(s.intValue()))
+                            .orElse(null);
+            if (status == null) {
+                LOGGER.info("Command with id {0} result: {1}", id, message);
+                future.complete(message);
+            } else if (Objects.equals(status, CommandStatus.COMPLETED)) {
+                LOGGER.info("Command with id {0} completed: {1}", id, message);
+                future.complete(message);
+            } else {
+                LOGGER.info("Command with id {0} has status: {1}", id, status);
+                if (status.isError())
+                    future.completeExceptionally(
+                            new DornaClientException(
+                                    "Command " + cmd + " failed with status " + status));
+            }
         } else {
             future = pendingCommands.get(cmd);
             if (future != null) {
-                LOGGER.info("Command {0} completed: {1}", cmd, message);
+                LOGGER.info("Command {0} result: {1}", cmd, message);
                 future.complete(message);
             }
         }

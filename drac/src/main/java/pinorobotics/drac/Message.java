@@ -41,7 +41,7 @@ public record Message(Map<String, Object> body) {
                 .orElseThrow(
                         () ->
                                 new DornaClientException(
-                                        "Missing 'version' field inside received message"));
+                                        "Missing '" + key + "' field inside received message"));
     }
 
     public String command() {
@@ -53,5 +53,17 @@ public record Message(Map<String, Object> body) {
      */
     public int id() {
         return find("id", Integer.class).orElse(0);
+    }
+
+    public Joints joints() {
+        return new Joints(
+                get("j0", Double.class),
+                get("j1", Double.class),
+                get("j2", Double.class),
+                get("j3", Double.class),
+                get("j4", Double.class),
+                get("j5", Double.class),
+                get("j6", Double.class),
+                get("j7", Double.class));
     }
 }
