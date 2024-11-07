@@ -17,32 +17,22 @@
  */
 package pinorobotics.drac;
 
-import pinorobotics.drac.exceptions.DornaClientException;
-import pinorobotics.drac.messages.Motion;
+import java.net.URI;
+import pinorobotics.drac.impl.DornaClientImpl;
 
 /**
- * Client to Dorna robotic arm
+ * Factory class for {@link DornaClient}
  *
  * @author lambdaprime intid@protonmail.com
  */
-public interface DornaClient extends AutoCloseable {
+public class DornaClientFactory {
 
     /**
-     * @return last motion message received from the Command Server
+     * Create Dorna client
+     *
+     * @param dornaUrl websocket URL of the Dorna Command Server
      */
-    Motion getLastMotion();
-
-    /**
-     * @return the current version of the firmware
-     * @see <a href="https://doc.dorna.ai/docs/cmd/version/">version command</a>
-     */
-    int version() throws DornaClientException;
-
-    /**
-     * @see <a href="https://doc.dorna.ai/docs/cmd/joint/">joint command</a>
-     */
-    void joint(Joints joints) throws DornaClientException;
-
-    @Override
-    void close();
+    public DornaClient createClient(URI dornaUrl) {
+        return new DornaClientImpl(dornaUrl);
+    }
 }
