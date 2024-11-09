@@ -21,8 +21,6 @@ import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.WebSocket;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
@@ -41,10 +39,16 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     private MessageProcessor messageProc = new MessageProcessor();
     private IdGenerator idGenerator = new IdGenerator();
     private URI dornaUrl;
-    private WebSocket webSocket;
+    private DracSocket webSocket;
+    private DracSocketFactory socketFactory;
 
     public DornaClientImpl(URI dornaUrl) {
+        this(dornaUrl, new DracSocketFactory());
+    }
+
+    public DornaClientImpl(URI dornaUrl, DracSocketFactory socketFactory) {
         this.dornaUrl = dornaUrl;
+        this.socketFactory = socketFactory;
     }
 
     @Override
@@ -58,10 +62,10 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         LOGGER.info("Call version command");
         var command = """
                 {"cmd":"%s"}""".formatted(CommandType.VERSION);
+        webSocket.sendText(command);
+        var future = messageProc.await(CommandType.VERSION);
+        webSocket.request(1);
         try {
-            webSocket.sendText(command, true).get();
-            var future = messageProc.await(CommandType.VERSION);
-            webSocket.request(1);
             return future.get().get("version", Integer.class);
         } catch (InterruptedException | ExecutionException e) {
             throw new DornaClientException(e);
@@ -87,10 +91,10 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 joints.j5(),
                                 joints.j6(),
                                 joints.j7());
+        webSocket.sendText(command);
+        var future = messageProc.await(id);
+        webSocket.request(1);
         try {
-            webSocket.sendText(command, true).get();
-            var future = messageProc.await(id);
-            webSocket.request(1);
             Preconditions.equals(joints, future.get().joints());
         } catch (InterruptedException | ExecutionException e) {
             throw new DornaClientException(e);
@@ -100,24 +104,12 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     @Override
     protected void onClose() {
         LOGGER.info("Closing connection to {0}", dornaUrl);
-        try {
-            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "").get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new DornaClientException(e);
-        }
+        webSocket.sendClose();
     }
 
     @Override
     protected void onStart() {
         LOGGER.info("Opening connection to {0}", dornaUrl);
-        HttpClient client = HttpClient.newHttpClient();
-        try {
-            webSocket =
-                    client.newWebSocketBuilder()
-                            .buildAsync(dornaUrl, new CommandServerListener(messageProc))
-                            .get();
-        } catch (Exception e) {
-            throw new DornaClientException(e);
-        }
+        webSocket = socketFactory.create(dornaUrl, messageProc);
     }
 }

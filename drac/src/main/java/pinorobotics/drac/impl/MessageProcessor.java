@@ -58,7 +58,6 @@ public class MessageProcessor {
                 future.complete(message);
             } else if (Objects.equals(status, CommandStatus.COMPLETED)) {
                 LOGGER.info("Command with id {0} completed: {1}", id, message);
-                future.complete(message);
             } else {
                 LOGGER.info("Command with id {0} has status: {1}", id, status);
                 if (status.isError())
