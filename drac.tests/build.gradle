@@ -12,6 +12,7 @@ eclipse.classpath.file {
 
 dependencies {
   testImplementation(project ":drac")
+  testImplementation "io.github.lambdaprime:id.xfunction:27.0-SNAPSHOT"
 
   def junitVersion = "5.8.1"
   testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
