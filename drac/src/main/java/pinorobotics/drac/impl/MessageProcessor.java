@@ -51,12 +51,12 @@ public class MessageProcessor {
         if (future != null) {
             var status =
                     message.find("stat", Double.class)
-                            .map(s -> new CommandStatus(s.intValue()))
+                            .map(s -> CommandStatus.findOrCreate(s.intValue()))
                             .orElse(null);
             if (status == null) {
                 LOGGER.info("Command with id {0} result: {1}", id, message);
                 future.complete(message);
-            } else if (Objects.equals(status, CommandStatus.COMPLETED)) {
+            } else if (status == CommandStatus.Predefined.COMPLETED.value()) {
                 LOGGER.info("Command with id {0} completed: {1}", id, message);
             } else {
                 LOGGER.info("Command with id {0} has status: {1}", id, status);

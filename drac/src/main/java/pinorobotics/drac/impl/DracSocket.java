@@ -43,7 +43,7 @@ public class DracSocket {
     }
 
     public void request(int n) {
-        LOGGER.fine("request: {0}", n);
+        LOGGER.fine("requested number of messages: {0}", n);
         socket.request(n);
     }
 

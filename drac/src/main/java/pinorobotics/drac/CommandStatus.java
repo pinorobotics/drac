@@ -17,20 +17,69 @@
  */
 package pinorobotics.drac;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * @author lambdaprime intid@protonmail.com
  */
-public record CommandStatus(int status) {
-    public static final CommandStatus RECEIVED = new CommandStatus(0);
-    public static final CommandStatus EXECUTING = new CommandStatus(1);
-    public static final CommandStatus COMPLETED = new CommandStatus(2);
+public class CommandStatus {
+
+    public enum Predefined {
+        RECEIVED(new CommandStatus(0, "RECEIVED")),
+        EXECUTING(new CommandStatus(1, "EXECUTING")),
+        COMPLETED(new CommandStatus(2, "COMPLETED")),
+        GENERAL_ERROR(new CommandStatus(-1, "General error")),
+        FINAL_POSITION_OUT_OF_RANGE(new CommandStatus(-100, "Final position is out of range")),
+        MIDPOINT_OUT_OF_RANGE_FOR_CIRCLE(
+                new CommandStatus(-102, "Midpoint is out of range for circle")),
+        MIDPOINT_NOT_PROVIDED_FOR_CIRCLE(
+                new CommandStatus(-103, "Midpoint is not provided for circle")),
+        VELOCITY_COEFFICIENT_OUT_OF_RANGE(
+                new CommandStatus(-104, "Velocity coefficient is out of range")),
+        ACCELERATION_COEFFICIENT_OUT_OF_RANGE(
+                new CommandStatus(-105, "Acceleration coefficient is out of range")),
+        JERK_COEFFICIENT_OUT_OF_RANGE(new CommandStatus(-106, "Jerk coefficient is out of range")),
+        VELOCITY_SHOULD_BE_POSITIVE(new CommandStatus(-107, "Velocity should be positive")),
+        ACCELERATION_SHOULD_BE_POSITIVE(new CommandStatus(-108, "Acceleration should be positive")),
+        JERK_SHOULD_BE_POSITIVE(new CommandStatus(-109, "Jerk should be positive")),
+        POINT_OUT_OF_RANGE_ON_PATH(new CommandStatus(-110, "Point out of range on the path")),
+        CIRCLE_CANNOT_BE_REALIZED(new CommandStatus(-111, "Circle cannot be realized")),
+        HALT_IN_PROCESS(new CommandStatus(-300, "Halt already in process")),
+        ALARM_ACTIVATED(new CommandStatus(-400, "Alarm activated"));
+        private CommandStatus val;
+
+        Predefined(CommandStatus val) {
+            this.val = val;
+        }
+
+        public CommandStatus value() {
+            return val;
+        }
+    }
+
+    private int status;
+    private String message;
+
+    private CommandStatus(int status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public static CommandStatus findOrCreate(int status) {
+        return Optional.ofNullable(MAP.get(status))
+                .orElseGet(() -> new CommandStatus(status, "unknown"));
+    }
+
+    private static final Map<Integer, CommandStatus> MAP =
+            Arrays.stream(Predefined.values())
+                    .collect(Collectors.toMap(p -> p.val.status, p -> p.val));
 
     @Override
     public final String toString() {
-        if (this.equals(RECEIVED)) return "RECEIVED";
-        else if (this.equals(EXECUTING)) return "EXECUTING";
-        else if (this.equals(COMPLETED)) return "COMPLETED";
-        else return "" + status;
+        return "%d=<%s>".formatted(status, message);
     }
 
     public boolean isError() {
