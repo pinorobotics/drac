@@ -28,6 +28,7 @@ public record Joints(
 
     public static final Joints HOME_DORNA2_BLACK =
             new Joints(180.0, 180.0, -142.0, 135.0, 0.0, 0.0, 0.0, 0.0);
+    public static final Joints ZERO = new Joints();
 
     public static Joints of(double[] joints) {
         Preconditions.equals(8, joints.length, "Mismatch in number of joints");

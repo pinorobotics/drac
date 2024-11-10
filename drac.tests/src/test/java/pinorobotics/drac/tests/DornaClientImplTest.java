@@ -37,6 +37,17 @@ public class DornaClientImplTest {
     private static final ResourceUtils resourceUtils = new ResourceUtils();
 
     @Test
+    public void test_getLastMotion() {
+        try (var client = createClient("recording_motion")) {
+            Assertions.assertEquals(
+                    "Motion [joints=[180.0, 180.0, -142.0, 140.0, 0.0, 0.0, 0.0, 0.0], x=36.526052,"
+                            + " y=-0.0, z=301.938713, a=178.0, b=0.0, c=0.0, d=0.0, e=0.0, vel=0.0,"
+                            + " accel=0.0]",
+                    client.getLastMotion().toString());
+        }
+    }
+
+    @Test
     public void test_version() {
         try (var client = createClient("recording_version")) {
             Assertions.assertEquals(109, client.version());

@@ -53,6 +53,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     @Override
     public Motion getLastMotion() {
+        start();
         return messageProc.getLastMotion();
     }
 

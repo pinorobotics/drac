@@ -19,7 +19,10 @@ package pinorobotics.drac.impl;
 
 import id.xfunction.logging.XLogger;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.Message;
+import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
 
 /**
@@ -28,6 +31,7 @@ import pinorobotics.drac.messages.Motion;
 public class MotionHolder {
     private static final XLogger LOGGER = XLogger.getLogger(MotionHolder.class);
     private Message previousMessage = new Message();
+    private CompletableFuture<Void> ready = new CompletableFuture<>();
     private Motion motion = new Motion();
 
     public void update(Message message) {
@@ -46,6 +50,7 @@ public class MotionHolder {
                             message.get("e", Double.class),
                             message.get("vel", Double.class),
                             message.get("accel", Double.class));
+            ready.complete(null);
         } catch (Exception e) {
             LOGGER.warning("Could not parse Motion message: {0}", e.getMessage());
             LOGGER.fine(e.getMessage(), e);
@@ -53,6 +58,11 @@ public class MotionHolder {
     }
 
     public Motion get() {
+        try {
+            ready.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DornaClientException(e);
+        }
         return motion;
     }
 }
