@@ -18,6 +18,8 @@
 package pinorobotics.drac;
 
 /**
+ * List of Dorna Command Server commands which are supported by <b>drac</b>
+ *
  * @author lambdaprime intid@protonmail.com
  */
 public interface CommandType {
@@ -28,4 +30,5 @@ public interface CommandType {
     String VERSION = "version";
     String JOINT = "joint";
     String JMOVE = "jmove";
+    String MOTOR = "motor";
 }

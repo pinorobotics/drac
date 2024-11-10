@@ -137,6 +137,30 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     }
 
     @Override
+    public void motor(boolean isOn) throws DornaClientException {
+        start();
+        LOGGER.info("Call motor command with isOn {0}", isOn);
+
+        var id = idGenerator.nextId();
+        var val = isOn ? 1 : 0;
+        var command =
+                """
+                {"cmd":"%s","id":%d,"motor":%d}
+                """
+                        .formatted(CommandType.MOTOR, id, val);
+        webSocket.sendText(command);
+
+        var future = messageProc.awaitResult(id);
+        webSocket.request(1);
+
+        try {
+            Preconditions.equals(val, future.get().get("motor", Double.class).intValue());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DornaClientException(e);
+        }
+    }
+
+    @Override
     protected void onClose() {
         LOGGER.info("Closing connection to {0}", dornaUrl);
         webSocket.sendClose();

@@ -63,6 +63,12 @@ public interface DornaClient extends AutoCloseable {
     void jmove(Joints joints, boolean isRelative, double velocity, double acceleration, double jerk)
             throws DornaClientException;
 
+    /**
+     * @param isOn motor on or off
+     * @see <a href="https://doc.dorna.ai/docs/cmd/motor/">motor command</a>
+     */
+    void motor(boolean isOn) throws DornaClientException;
+
     @Override
     void close();
 }
