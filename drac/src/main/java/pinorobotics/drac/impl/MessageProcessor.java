@@ -35,7 +35,10 @@ import pinorobotics.drac.messages.Motion;
 public class MessageProcessor {
     private static final XLogger LOGGER = XLogger.getLogger(MessageProcessor.class);
     private Map<String, CompletableFuture<Message>> pendingCommands = new HashMap<>();
-    private Map<Integer, CompletableFuture<Message>> pendingCommandsWithId = new HashMap<>();
+    private Map<Integer, CompletableFuture<Message>> pendingCommandsAwaitingResult =
+            new HashMap<>();
+    private Map<Integer, CompletableFuture<Void>> pendingCommandsAwaitingCompletion =
+            new HashMap<>();
     private MotionHolder lastMotion = new MotionHolder();
 
     public void process(Message message) {
@@ -47,37 +50,54 @@ public class MessageProcessor {
             return;
         }
         var id = message.id();
-        var future = pendingCommandsWithId.get(id);
+        if (processById(id, cmd, message)) return;
+        var future = pendingCommands.get(cmd);
         if (future != null) {
-            var status =
-                    message.find("stat", Double.class)
-                            .map(s -> CommandStatus.findOrCreate(s.intValue()))
-                            .orElse(null);
-            if (status == null) {
-                LOGGER.info("Command with id {0} result: {1}", id, message);
-                future.complete(message);
-            } else if (status == CommandStatus.Predefined.COMPLETED.value()) {
-                LOGGER.info("Command with id {0} completed: {1}", id, message);
-            } else {
-                LOGGER.info("Command with id {0} has status: {1}", id, status);
-                if (status.isError())
-                    future.completeExceptionally(
-                            new DornaClientException(
-                                    "Command " + cmd + " failed with status " + status));
-            }
-        } else {
-            future = pendingCommands.get(cmd);
-            if (future != null) {
-                LOGGER.info("Command {0} result: {1}", cmd, message);
-                future.complete(message);
-            }
+            LOGGER.info("Command {0} result: {1}", cmd, message);
+            future.complete(message);
         }
     }
 
-    public Future<Message> await(int id) {
-        LOGGER.info("Awaiting message for command with id {0}", id);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private boolean processById(int id, String cmd, Message message) {
+        CompletableFuture future = pendingCommandsAwaitingResult.get(id);
+        boolean withoutResult = false;
+        if (future == null) {
+            withoutResult = true;
+            future = pendingCommandsAwaitingCompletion.get(id);
+        }
+        if (future == null) return false;
+        var status =
+                message.find("stat", Double.class)
+                        .map(s -> CommandStatus.findOrCreate(s.intValue()))
+                        .orElse(null);
+        if (status == null) {
+            LOGGER.info("Command with id {0} result: {1}", id, message);
+            if (!withoutResult) future.complete(message);
+        } else if (status == CommandStatus.Predefined.COMPLETED.value()) {
+            LOGGER.info("Command with id {0} completed: {1}", id, message);
+            if (withoutResult) future.complete(null);
+        } else {
+            LOGGER.info("Command with id {0} has status: {1}", id, status);
+            if (status.isError())
+                future.completeExceptionally(
+                        new DornaClientException(
+                                "Command " + cmd + " failed with status " + status));
+        }
+        return true;
+    }
+
+    public Future<Message> awaitResult(int id) {
+        LOGGER.info("Awaiting result for command with id {0}", id);
         var future = new CompletableFuture<Message>();
-        pendingCommandsWithId.put(id, future);
+        pendingCommandsAwaitingResult.put(id, future);
+        return future;
+    }
+
+    public CompletableFuture<Void> awaitCompletion(int id) {
+        LOGGER.info("Awaiting completion for command with id {0}", id);
+        var future = new CompletableFuture<Void>();
+        pendingCommandsAwaitingCompletion.put(id, future);
         return future;
     }
 

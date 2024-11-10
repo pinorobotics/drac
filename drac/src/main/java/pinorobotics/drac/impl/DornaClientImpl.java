@@ -93,7 +93,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 joints.j6(),
                                 joints.j7());
         webSocket.sendText(command);
-        var future = messageProc.await(id);
+        var future = messageProc.awaitResult(id);
         webSocket.request(1);
         try {
             Preconditions.equals(joints, future.get().joints());
@@ -127,10 +127,10 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 acceleration,
                                 jerk);
         webSocket.sendText(command);
-        var future = messageProc.await(id);
+        var future = messageProc.awaitCompletion(id);
         webSocket.request(1);
         try {
-            Preconditions.equals(joints, future.get().joints());
+            future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new DornaClientException(e);
         }
