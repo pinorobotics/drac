@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.Joints;
+import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.impl.CommandServerListener;
 import pinorobotics.drac.impl.DornaClientImpl;
 import pinorobotics.drac.impl.DracSocket;
@@ -48,6 +49,21 @@ public class DornaClientImplTest {
             var j = Joints.HOME_DORNA2_BLACK.toArray();
             j[3] = 100;
             client.joint(Joints.of(j));
+        }
+    }
+
+    @Test
+    public void test_jmove_zero_velocity() {
+        try (var client = createClient("recording_jmove")) {
+            var joints = Joints.HOME_DORNA2_BLACK;
+            var ex =
+                    Assertions.assertThrows(
+                            DornaClientException.class, () -> client.jmove(joints, false, 0, 0, 0));
+            Assertions.assertEquals(
+                    "java.util.concurrent.ExecutionException:"
+                        + " pinorobotics.drac.exceptions.DornaClientException: Command  failed with"
+                        + " status -107=<Velocity should be positive>",
+                    ex.getMessage());
         }
     }
 

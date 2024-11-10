@@ -27,4 +27,5 @@ public interface CommandType {
     String MOTION = "motion";
     String VERSION = "version";
     String JOINT = "joint";
+    String JMOVE = "jmove";
 }

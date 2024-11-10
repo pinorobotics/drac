@@ -27,6 +27,10 @@ import pinorobotics.drac.messages.Motion;
  */
 public interface DornaClient extends AutoCloseable {
 
+    double DEFAULT_VELOCITY = 25;
+    double DEFAULT_ACCEL = 500;
+    double DEFAULT_JERK = 2500;
+
     /**
      * @return last motion message received from the Command Server
      */
@@ -42,6 +46,22 @@ public interface DornaClient extends AutoCloseable {
      * @see <a href="https://doc.dorna.ai/docs/cmd/joint/">joint command</a>
      */
     void joint(Joints joints) throws DornaClientException;
+
+    /**
+     * Calls {@link #jmove(Joints, boolean, double, double, double)} with default values ({@link
+     * #DEFAULT_VELOCITY}, ...)
+     *
+     * @see #jmove(Joints, boolean, double, double, double)
+     */
+    default void jmove(Joints joints, boolean isRelative) throws DornaClientException {
+        jmove(joints, isRelative, DEFAULT_VELOCITY, DEFAULT_ACCEL, DEFAULT_JERK);
+    }
+
+    /**
+     * @see <a href="https://doc.dorna.ai/docs/cmd/joint%20move/">jmove command</a>
+     */
+    void jmove(Joints joints, boolean isRelative, double velocity, double acceleration, double jerk)
+            throws DornaClientException;
 
     @Override
     void close();

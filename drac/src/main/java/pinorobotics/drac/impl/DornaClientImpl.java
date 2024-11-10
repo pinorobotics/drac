@@ -102,6 +102,40 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     }
 
     @Override
+    public void jmove(
+            Joints joints, boolean isRelative, double velocity, double acceleration, double jerk) {
+        start();
+        LOGGER.info("Call jmove command");
+        var id = idGenerator.nextId();
+        var command =
+                """
+                {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f}"""
+                        .formatted(
+                                CommandType.JMOVE,
+                                id,
+                                joints.j0(),
+                                joints.j1(),
+                                joints.j2(),
+                                joints.j3(),
+                                joints.j4(),
+                                joints.j5(),
+                                joints.j6(),
+                                joints.j7(),
+                                isRelative ? 1 : 0,
+                                velocity,
+                                acceleration,
+                                jerk);
+        webSocket.sendText(command);
+        var future = messageProc.await(id);
+        webSocket.request(1);
+        try {
+            Preconditions.equals(joints, future.get().joints());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new DornaClientException(e);
+        }
+    }
+
+    @Override
     protected void onClose() {
         LOGGER.info("Closing connection to {0}", dornaUrl);
         webSocket.sendClose();
