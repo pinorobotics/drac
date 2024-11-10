@@ -4,6 +4,7 @@
 module drac {
     exports pinorobotics.drac;
     exports pinorobotics.drac.messages;
+    exports pinorobotics.drac.exceptions;
     exports pinorobotics.drac.impl to
             drac.tests;
 

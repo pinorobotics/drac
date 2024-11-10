@@ -17,6 +17,7 @@
  */
 package pinorobotics.drac.tests;
 
+import id.xfunction.concurrent.NamedThreadFactory;
 import id.xfunction.function.Unchecked;
 import id.xfunction.lang.XThread;
 import java.net.http.WebSocket;
@@ -26,7 +27,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,74 +45,75 @@ public class CommandServerWebSocketMock implements WebSocket {
     private BlockingQueue<String> out = new SynchronousQueue<>();
     private BlockingQueue<String> periodic = new LinkedBlockingQueue<String>();
     private AtomicLong requested = new AtomicLong();
+    private ExecutorService executor =
+            Executors.newCachedThreadPool(
+                    new NamedThreadFactory(CommandServerWebSocketMock.class.getSimpleName()));
 
     public CommandServerWebSocketMock(List<String> recording, Listener listener) {
 
         // publish Command Server periodic messages
-        ForkJoinPool.commonPool()
-                .execute(
-                        () -> {
-                            while (true) {
-                                var msg = Unchecked.get(periodic::take);
-                                if (msg == EOF) {
-                                    System.out.println("Stopping Command Server periodic thread");
-                                    return;
-                                }
-                                Unchecked.run(() -> in.put(msg));
-                                periodic.add(msg);
-                                // XThread.sleep(500);
-                            }
-                        });
+        executor.execute(
+                () -> {
+                    while (true) {
+                        var msg = Unchecked.get(periodic::take);
+                        if (msg == EOF) {
+                            System.out.println("Stopped Command Server periodic thread");
+                            periodic.clear();
+                            return;
+                        }
+                        Unchecked.run(() -> in.put(msg));
+                        periodic.add(msg);
+                        // XThread.sleep(500);
+                    }
+                });
 
         // send Command Server response messages
-        ForkJoinPool.commonPool()
-                .submit(
-                        () -> {
-                            while (true) {
-                                while (requested.get() > 0) {
-                                    var msg = Unchecked.get(in::take);
-                                    if (msg == EOF) {
-                                        System.out.println(
-                                                "Stopping Command Server response thread");
-                                        return;
-                                    }
-                                    listener.onText(this, msg, true);
-                                    requested.decrementAndGet();
-                                }
-                                XThread.sleep(500);
+        executor.execute(
+                () -> {
+                    while (true) {
+                        while (requested.get() > 0) {
+                            var msg = Unchecked.get(in::take);
+                            if (msg == EOF) {
+                                System.out.println("Stopped Command Server response thread");
+                                return;
                             }
-                        });
+                            listener.onText(this, msg, true);
+                            requested.decrementAndGet();
+                        }
+                        XThread.sleep(500);
+                    }
+                });
 
         // play the recording
-        ForkJoinPool.commonPool()
-                .execute(
-                        () -> {
-                            var msg = "";
-                            Queue<String> q = new LinkedList<>(recording);
-                            try {
-                                while ((msg = q.poll()) != null) {
-                                    var ch = msg.charAt(0);
-                                    msg = msg.substring(1);
-                                    if (ch == '!') {
-                                        periodic.put(msg);
-                                    } else if (ch == '<') {
-                                        out.put(msg);
-                                    } else if (ch == '>') {
-                                        in.put(msg);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
+        executor.execute(
+                () -> {
+                    var msg = "";
+                    Queue<String> q = new LinkedList<>(recording);
+                    try {
+                        while ((msg = q.poll()) != null) {
+                            var ch = msg.charAt(0);
+                            msg = msg.substring(1);
+                            if (ch == '!') {
+                                periodic.put(msg);
+                            } else if (ch == '<') {
+                                out.put(msg);
+                            } else if (ch == '>') {
+                                in.put(msg);
                             }
-                            XThread.sleep(5000);
-                            periodic.offer(EOF);
-                            Unchecked.run(
-                                    () -> {
-                                        in.put(EOF);
-                                        out.put(EOF);
-                                    });
-                            System.out.println("Stopping play");
-                        });
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Unchecked.run(
+                            () -> {
+                                periodic.put(EOF);
+                                while (periodic.size() > 0)
+                                    ;
+                                in.put(EOF);
+                                out.put(EOF);
+                            });
+                    System.out.println("Stopped play");
+                });
 
         listener.onOpen(this);
     }
@@ -120,10 +123,8 @@ public class CommandServerWebSocketMock implements WebSocket {
         buf.append(data);
         if (last) {
             var expected = Unchecked.get(out::take);
-            if (expected != EOF) {
-                Assertions.assertEquals(expected, buf.toString());
-                buf.setLength(0);
-            }
+            Assertions.assertEquals(expected, buf.toString());
+            buf.setLength(0);
         }
         return CompletableFuture.completedFuture(this);
     }
@@ -145,6 +146,9 @@ public class CommandServerWebSocketMock implements WebSocket {
 
     @Override
     public CompletableFuture<WebSocket> sendClose(int statusCode, String reason) {
+        var expected = Unchecked.get(out::take);
+        Assertions.assertEquals(expected, EOF);
+        executor.close();
         return CompletableFuture.completedFuture(this);
     }
 
@@ -169,5 +173,7 @@ public class CommandServerWebSocketMock implements WebSocket {
     }
 
     @Override
-    public void abort() {}
+    public void abort() {
+        executor.close();
+    }
 }
