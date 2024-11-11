@@ -21,7 +21,10 @@ import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
 
 /**
- * Client to Dorna robotic arm
+ * Client to Dorna robotic arm.
+ *
+ * <p>Offline operations does not involve any interactions with Dorna Command Server and so they are
+ * cheap to call.
  *
  * @author lambdaprime intid@protonmail.com
  */
@@ -31,10 +34,9 @@ public interface DornaClient extends AutoCloseable {
     double DEFAULT_ACCEL = 500;
     double DEFAULT_JERK = 2500;
 
-    /**
-     * @return last motion message received from the Command Server
+    /*
+     *  Dorna commands goes below
      */
-    Motion getLastMotion();
 
     /**
      * @return the current version of the firmware
@@ -48,14 +50,12 @@ public interface DornaClient extends AutoCloseable {
     void joint(Joints joints) throws DornaClientException;
 
     /**
-     * Calls {@link #jmove(Joints, boolean, double, double, double)} with default values ({@link
-     * #DEFAULT_VELOCITY}, ...)
+     * Calls {@link #jmove(Joints, boolean, double, double, double)} with with current values ({@link
+     * #setVeloctiry(double), ...)
      *
      * @see #jmove(Joints, boolean, double, double, double)
      */
-    default void jmove(Joints joints, boolean isRelative) throws DornaClientException {
-        jmove(joints, isRelative, DEFAULT_VELOCITY, DEFAULT_ACCEL, DEFAULT_JERK);
-    }
+    void jmove(Joints joints, boolean isRelative) throws DornaClientException;
 
     /**
      * @see <a href="https://doc.dorna.ai/docs/cmd/joint%20move/">jmove command</a>
@@ -68,6 +68,43 @@ public interface DornaClient extends AutoCloseable {
      * @see <a href="https://doc.dorna.ai/docs/cmd/motor/">motor command</a>
      */
     void motor(boolean isOn) throws DornaClientException;
+
+    /*
+     * drac features goes below
+     */
+
+    /**
+     * Last motion message received from the Command Server
+     *
+     * <p>This is offline operation.
+     */
+    Motion getLastMotion();
+
+    /**
+     * Change velocity for all motion commands of this client instance. Default is {@link
+     * #DEFAULT_VELOCITY}
+     *
+     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
+     * Command Server. Instead it is included later in all motion commands.
+     */
+    void setVelocity(double vel);
+
+    /**
+     * Change acceleration for all motion commands of this client instance. Default is {@link
+     * #DEFAULT_ACCEL}
+     *
+     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
+     * Command Server. Instead it is included later in all motion commands.
+     */
+    void setAcceleration(double accel);
+
+    /**
+     * Change jerk for all motion commands of this client instance. Default is {@link #DEFAULT_JERK}
+     *
+     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
+     * Command Server. Instead it is included later in all motion commands.
+     */
+    void setJerk(double jerk);
 
     @Override
     void close();
