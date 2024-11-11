@@ -20,6 +20,7 @@ package pinorobotics.drac.impl;
 import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
@@ -193,5 +194,23 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     @Override
     public void jmove(Joints joints, boolean isRelative) throws DornaClientException {
         jmove(joints, isRelative, velocity, acceleration, jerk);
+    }
+
+    @Override
+    public void play(List<String> script) throws DornaClientException {
+        start();
+        LOGGER.info("Call play command");
+        for (var messageJson : script) {
+            var id = idGenerator.nextId();
+            messageJson = MessageUtils.setId(messageJson, id);
+            var future = messageProc.awaitCompletion(id);
+            webSocket.request(1);
+            webSocket.sendText(messageJson);
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new DornaClientException(e);
+            }
+        }
     }
 }

@@ -8,4 +8,5 @@ module drac.tests {
     requires drac;
     requires transitive java.net.http;
     requires id.xfunction;
+    requires org.junit.jupiter.params;
 }

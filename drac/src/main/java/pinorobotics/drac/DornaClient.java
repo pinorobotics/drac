@@ -17,6 +17,10 @@
  */
 package pinorobotics.drac;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
 
@@ -105,6 +109,51 @@ public interface DornaClient extends AutoCloseable {
      * Command Server. Instead it is included later in all motion commands.
      */
     void setJerk(double jerk);
+
+    /**
+     * Send list of recorded commands to Dorna Command Server.
+     *
+     * <p>Commands must be given is JSON format with one command per line (same as they are used in
+     * DornaLab)
+     *
+     * @see {@link #play(List)}
+     */
+    default void play(Path script) throws DornaClientException {
+        try {
+            play(Files.readAllLines(script));
+        } catch (DornaClientException | IOException e) {
+            throw new DornaClientException(e);
+        }
+    }
+
+    /**
+     * @param script multi-line string with one command per line. Each command must be in JSON
+     *     format.
+     * @throws DornaClientException
+     * @see {@link #play(List)}
+     */
+    default void play(String script) throws DornaClientException {
+        play(script.lines().toList());
+    }
+
+    /**
+     * Play the script
+     *
+     * <p>Send commands one by one to the Dorna Command Server. Each command is send only when
+     * previous command is completed. If any of the commands fails then play stops and {@link
+     * DornaClientException} is thrown.
+     *
+     * <p>If any of the command has "id" field set then there is no guarantee that it will be
+     * preserved. It can be replaced with a client managed id.
+     *
+     * @param script list of commands in JSON format. Example:
+     *     <pre>{@code
+     * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":135,"j4":0}
+     * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":91.9125,"j4":0.225}
+     * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":53.2125,"j4":0.27}
+     * }</pre>
+     */
+    void play(List<String> script) throws DornaClientException;
 
     @Override
     void close();

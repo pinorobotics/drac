@@ -109,6 +109,19 @@ public class DornaClientImplTest {
                 Files.readString(outputLog));
     }
 
+    @Test
+    public void test_play() {
+        try (var client = createClient("recording_play")) {
+            client.motor(true);
+            client.play(
+                    """
+{"cmd":"jmove","rel":0,"j0":180,"j1":180,"id":12,"j2":-142,"j3":135,"j4":0}
+{"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":91.9125,"j4":0.225, "id":123}
+                    """);
+            client.motor(false);
+        }
+    }
+
     private DornaClient createClient(String recording) {
         return createClient(recording, Optional.empty());
     }

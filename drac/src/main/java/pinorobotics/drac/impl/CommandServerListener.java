@@ -17,22 +17,19 @@
  */
 package pinorobotics.drac.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static pinorobotics.drac.impl.MessageUtils.parse;
+
 import id.xfunction.logging.XLogger;
 import java.net.http.WebSocket;
 import java.net.http.WebSocket.Listener;
-import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import pinorobotics.drac.DornaClient;
-import pinorobotics.drac.Message;
 
 /**
  * @author lambdaprime intid@protonmail.com
  */
 public class CommandServerListener implements Listener {
     private static final XLogger LOGGER = XLogger.getLogger(DornaClient.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private StringBuilder buf = new StringBuilder();
     private MessageProcessor messageProc;
@@ -47,12 +44,7 @@ public class CommandServerListener implements Listener {
         if (last) {
             var jsonMessage = buf.toString();
             LOGGER.fine("incoming message: {0}", jsonMessage);
-            try {
-                Map<String, Object> message = MAPPER.readValue(jsonMessage, Map.class);
-                messageProc.process(new Message(message));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            parse(jsonMessage).ifPresent(messageProc::process);
             buf = new StringBuilder();
         } else {
             LOGGER.fine("incoming data: {0}", data);
