@@ -20,10 +20,10 @@ package pinorobotics.drac.impl;
 import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
-import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
+import pinorobotics.drac.DornaClientConfig;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
@@ -38,16 +38,16 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     private MessageProcessor messageProc = new MessageProcessor();
     private IdGenerator idGenerator = new IdGenerator();
-    private URI dornaUrl;
+    private DornaClientConfig dornaClientConfig;
     private DracSocket webSocket;
     private DracSocketFactory socketFactory;
 
-    public DornaClientImpl(URI dornaUrl) {
-        this(dornaUrl, new DracSocketFactory());
+    public DornaClientImpl(DornaClientConfig dornaClientConfig) {
+        this(dornaClientConfig, new DracSocketFactory());
     }
 
-    public DornaClientImpl(URI dornaUrl, DracSocketFactory socketFactory) {
-        this.dornaUrl = dornaUrl;
+    public DornaClientImpl(DornaClientConfig dornaClientConfig, DracSocketFactory socketFactory) {
+        this.dornaClientConfig = dornaClientConfig;
         this.socketFactory = socketFactory;
     }
 
@@ -61,11 +61,11 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     public int version() throws DornaClientException {
         start();
         LOGGER.info("Call version command");
+        var future = messageProc.await(CommandType.VERSION);
+        webSocket.request(1);
         var command = """
                 {"cmd":"%s"}""".formatted(CommandType.VERSION);
         webSocket.sendText(command);
-        var future = messageProc.await(CommandType.VERSION);
-        webSocket.request(1);
         try {
             return future.get().get("version", Integer.class);
         } catch (InterruptedException | ExecutionException e) {
@@ -78,6 +78,8 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         start();
         LOGGER.info("Call joint command");
         var id = idGenerator.nextId();
+        var future = messageProc.awaitResult(id);
+        webSocket.request(1);
         var command =
                 """
                 {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f}"""
@@ -93,8 +95,6 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 joints.j6(),
                                 joints.j7());
         webSocket.sendText(command);
-        var future = messageProc.awaitResult(id);
-        webSocket.request(1);
         try {
             Preconditions.equals(joints, future.get().joints());
         } catch (InterruptedException | ExecutionException e) {
@@ -108,6 +108,8 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         start();
         LOGGER.info("Call jmove command");
         var id = idGenerator.nextId();
+        var future = messageProc.awaitCompletion(id);
+        webSocket.request(1);
         var command =
                 """
                 {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f}"""
@@ -127,8 +129,6 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 acceleration,
                                 jerk);
         webSocket.sendText(command);
-        var future = messageProc.awaitCompletion(id);
-        webSocket.request(1);
         try {
             future.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -143,15 +143,13 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
         var id = idGenerator.nextId();
         var val = isOn ? 1 : 0;
-        var command =
-                """
-                {"cmd":"%s","id":%d,"motor":%d}
-                """
-                        .formatted(CommandType.MOTOR, id, val);
-        webSocket.sendText(command);
-
         var future = messageProc.awaitResult(id);
         webSocket.request(1);
+        var command =
+                """
+                {"cmd":"%s","id":%d,"motor":%d}"""
+                        .formatted(CommandType.MOTOR, id, val);
+        webSocket.sendText(command);
 
         try {
             Preconditions.equals(val, future.get().get("motor", Double.class).intValue());
@@ -162,13 +160,15 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     @Override
     protected void onClose() {
-        LOGGER.info("Closing connection to {0}", dornaUrl);
+        LOGGER.info("Closing connection to {0}", dornaClientConfig.dornaUrl());
         webSocket.sendClose();
     }
 
     @Override
     protected void onStart() {
-        LOGGER.info("Opening connection to {0}", dornaUrl);
-        webSocket = socketFactory.create(dornaUrl, messageProc);
+        LOGGER.info("Opening connection to {0}", dornaClientConfig.dornaUrl());
+        webSocket =
+                socketFactory.create(
+                        dornaClientConfig.dornaUrl(), messageProc, dornaClientConfig.outputLog());
     }
 }

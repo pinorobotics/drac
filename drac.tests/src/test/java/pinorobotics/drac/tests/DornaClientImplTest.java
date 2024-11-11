@@ -18,10 +18,16 @@
 package pinorobotics.drac.tests;
 
 import id.xfunction.ResourceUtils;
+import id.xfunction.logging.XLogger;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pinorobotics.drac.DornaClient;
+import pinorobotics.drac.DornaClientConfig;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.impl.CommandServerListener;
@@ -78,17 +84,50 @@ public class DornaClientImplTest {
         }
     }
 
+    @Test
+    public void test_outputLog() throws IOException {
+        XLogger.load("logging-drac-debug.properties");
+        var outputLog = Files.createTempFile("drac", null);
+        try (var client = createClient("recording_outputLog", Optional.of(outputLog))) {
+
+            var motion = client.getLastMotion();
+            client.motor(true);
+            var joints = motion.joints().toArray();
+            joints[3] -= 10;
+            client.jmove(Joints.of(joints), false);
+            joints[3] += 10;
+            client.jmove(Joints.of(joints), false);
+            client.motor(false);
+        }
+        Assertions.assertEquals(
+                """
+{"cmd":"motor","id":1,"motor":1}
+{"cmd":"jmove","id":2,"j0":180.000000,"j1":180.018000,"j2":-142.000000,"j3":125.011250,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
+{"cmd":"jmove","id":3,"j0":180.000000,"j1":180.018000,"j2":-142.000000,"j3":135.011250,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
+{"cmd":"motor","id":4,"motor":0}
+                """,
+                Files.readString(outputLog));
+    }
+
     private DornaClient createClient(String recording) {
+        return createClient(recording, Optional.empty());
+    }
+
+    private DornaClient createClient(String recording, Optional<Path> outputLog) {
         var factory =
                 new DracSocketFactory() {
                     @Override
-                    public DracSocket create(URI dornaUrl, MessageProcessor messageProc) {
+                    public DracSocket create(
+                            URI dornaUrl, MessageProcessor messageProc, Optional<Path> outputLog) {
                         return new DracSocket(
                                 new CommandServerWebSocketMock(
                                         resourceUtils.readResourceAsList(recording),
-                                        new CommandServerListener(messageProc)));
+                                        new CommandServerListener(messageProc)),
+                                outputLog);
                     }
                 };
-        return new DornaClientImpl(URI.create("dorna"), factory);
+        var configBuilder = new DornaClientConfig.Builder(URI.create("ws://dorna"));
+        outputLog.ifPresent(configBuilder::outputLog);
+        return new DornaClientImpl(configBuilder.build(), factory);
     }
 }

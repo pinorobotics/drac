@@ -63,7 +63,6 @@ public class CommandServerWebSocketMock implements WebSocket {
                         }
                         Unchecked.run(() -> in.put(msg));
                         periodic.add(msg);
-                        // XThread.sleep(500);
                     }
                 });
 

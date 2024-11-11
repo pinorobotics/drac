@@ -19,6 +19,8 @@ package pinorobotics.drac.impl;
 
 import id.xfunction.logging.XLogger;
 import java.net.http.WebSocket;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.exceptions.DornaClientException;
 
@@ -28,13 +30,17 @@ import pinorobotics.drac.exceptions.DornaClientException;
 public class DracSocket {
     private static final XLogger LOGGER = XLogger.getLogger(DracSocket.class);
     private WebSocket socket;
+    private Optional<FileAppender> outputLog;
 
-    public DracSocket(WebSocket socket) {
+    @SuppressWarnings("exports")
+    public DracSocket(WebSocket socket, Optional<Path> outputLog) {
         this.socket = socket;
+        this.outputLog = outputLog.map(FileAppender::new);
     }
 
     public void sendText(String command) {
         LOGGER.fine("send: {0}", command);
+        outputLog.ifPresent(out -> out.append(command));
         try {
             socket.sendText(command, true).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -49,6 +55,7 @@ public class DracSocket {
 
     public void sendClose() {
         LOGGER.fine("send close");
+        outputLog.ifPresent(FileAppender::close);
         try {
             socket.sendClose(WebSocket.NORMAL_CLOSURE, "").get();
         } catch (InterruptedException | ExecutionException e) {

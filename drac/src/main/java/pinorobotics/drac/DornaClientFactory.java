@@ -33,6 +33,11 @@ public class DornaClientFactory {
      * @param dornaUrl websocket URL of the Dorna Command Server
      */
     public DornaClient createClient(URI dornaUrl) {
-        return new DornaClientImpl(dornaUrl);
+        return new DornaClientImpl(new DornaClientConfig.Builder(dornaUrl).build());
+    }
+
+    /** Create Dorna client with given configuration */
+    public DornaClient createClient(DornaClientConfig config) {
+        return new DornaClientImpl(config);
     }
 }

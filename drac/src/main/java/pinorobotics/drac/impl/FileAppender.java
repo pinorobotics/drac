@@ -17,26 +17,36 @@
  */
 package pinorobotics.drac.impl;
 
-import java.net.URI;
-import java.net.http.HttpClient;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.Optional;
 import pinorobotics.drac.exceptions.DornaClientException;
 
 /**
  * @author lambdaprime intid@protonmail.com
  */
-public class DracSocketFactory {
+public class FileAppender implements AutoCloseable {
 
-    public DracSocket create(URI dornaUrl, MessageProcessor messageProc, Optional<Path> outputLog) {
+    private PrintWriter printWriter;
+
+    public FileAppender(Path outputLog) {
+        printWriter = openFile(outputLog);
+    }
+
+    @Override
+    public void close() {
+        printWriter.close();
+    }
+
+    public void append(String line) {
+        printWriter.println(line);
+    }
+
+    private PrintWriter openFile(Path file) {
         try {
-            HttpClient client = HttpClient.newHttpClient();
-            return new DracSocket(
-                    client.newWebSocketBuilder()
-                            .buildAsync(dornaUrl, new CommandServerListener(messageProc))
-                            .get(),
-                    outputLog);
-        } catch (Exception e) {
+            return new PrintWriter(new FileWriter(file.toFile(), true));
+        } catch (IOException e) {
             throw new DornaClientException(e);
         }
     }
