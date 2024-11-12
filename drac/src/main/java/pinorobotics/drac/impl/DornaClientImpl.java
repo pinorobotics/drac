@@ -18,6 +18,8 @@
 package pinorobotics.drac.impl;
 
 import id.xfunction.Preconditions;
+import id.xfunction.function.Unchecked;
+import id.xfunction.lang.XThread;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
 import java.util.List;
@@ -144,6 +146,36 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     public void motor(boolean isOn) throws DornaClientException {
         start();
         LOGGER.info("Call motor command with isOn {0}", isOn);
+
+        if (!isOn) {
+            if (Joints.EUCLID_DISTANCE_COMPARATOR.compare(
+                            getLastMotion().joints(), Joints.HOME_DORNA2_BLACK)
+                    > 5) {
+                if (dornaClientConfig.confirmMotorTurnOff()) {
+                    LOGGER.warning(
+                            """
+
+
+                            Received request to turn off the motor. Turning off motor can potentially cause robot arm to fall [Dorna Robot User Manual (Last update on Aug 30, 2023): Dorna Lab: Motors]
+                            To disable this warning see DornaClientConfig.
+
+                            If it is safe to proceed please press Enter.
+                            Otherwise please move robotic arm into a safe position first and then press Enter.
+                            To move robotic arm to home position automatically, type "h" and press Enter.
+                            """);
+                    Unchecked.run(
+                            () -> {
+                                var key = System.in.read();
+                                if (key == -1) {
+                                    // if stream is closed then wait indefinitely
+                                    XThread.sleep(Long.MAX_VALUE);
+                                } else if (key == 'h') {
+                                    jmove(Joints.HOME_DORNA2_BLACK, false);
+                                }
+                            });
+                }
+            }
+        }
 
         var id = idGenerator.nextId();
         var val = isOn ? 1 : 0;

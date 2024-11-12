@@ -24,11 +24,13 @@ import java.util.Optional;
 /**
  * @author lambdaprime intid@protonmail.com
  */
-public record DornaClientConfig(URI dornaUrl, Optional<Path> outputLog) {
+public record DornaClientConfig(
+        URI dornaUrl, Optional<Path> outputLog, boolean confirmMotorTurnOff) {
 
     public static class Builder {
         private URI dornaUrl;
         private Optional<Path> outputLog = Optional.empty();
+        private boolean confirmMotorTurnOff = true;
 
         public Builder(URI dornaUrl) {
             this.dornaUrl = dornaUrl;
@@ -47,8 +49,25 @@ public record DornaClientConfig(URI dornaUrl, Optional<Path> outputLog) {
             return this;
         }
 
+        /**
+         * Require user confirmation every time when motor is about to turn off. Default is true.
+         *
+         * <p>Turning off motor can potentially cause robot arm to fall [Dorna Robot User Manual
+         * (Last update on Aug 30, 2023): Dorna Lab: Motors]
+         *
+         * <p>To prevent this from happening, every time when user turns off the motor we show a
+         * warning message and wait until user confirms if it is safe to proceed.
+         *
+         * <p>The warning does not happen when robot is in {@link Joints#HOME_DORNA2_BLACK}
+         * position.
+         */
+        public Builder confirmMotorShutOff(boolean confirmMotorShutOff) {
+            this.confirmMotorTurnOff = confirmMotorShutOff;
+            return this;
+        }
+
         public DornaClientConfig build() {
-            return new DornaClientConfig(this.dornaUrl, this.outputLog);
+            return new DornaClientConfig(this.dornaUrl, this.outputLog, confirmMotorTurnOff);
         }
     }
 }

@@ -18,12 +18,13 @@
 package pinorobotics.drac.tests;
 
 import id.xfunction.ResourceUtils;
-import id.xfunction.logging.XLogger;
+import id.xfunction.lang.XThread;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pinorobotics.drac.DornaClient;
@@ -85,11 +86,20 @@ public class DornaClientImplTest {
     }
 
     @Test
+    public void test_motor_safe_to_turn_off() throws Exception {
+        try (var client = createClient("recording_motor_safe_to_turn_off")) {
+            client.motor(true);
+            var future = ForkJoinPool.commonPool().submit(() -> client.motor(false));
+            XThread.sleep(500);
+            Assertions.assertEquals(false, future.isDone());
+            future.cancel(true);
+        }
+    }
+
+    @Test
     public void test_outputLog() throws IOException {
-        XLogger.load("logging-drac-debug.properties");
         var outputLog = Files.createTempFile("drac", null);
         try (var client = createClient("recording_outputLog", Optional.of(outputLog))) {
-
             var motion = client.getLastMotion();
             client.motor(true);
             var joints = motion.joints().toArray();
