@@ -20,20 +20,26 @@ package pinorobotics.drac;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Optional;
+import pinorobotics.drac.impl.annotations.DornaDocReference;
 
 /**
  * @author lambdaprime intid@protonmail.com
  */
 public record DornaClientConfig(
-        URI dornaUrl, Optional<Path> outputLog, boolean confirmMotorTurnOff) {
+        URI dornaUrl,
+        DornaRobotModel model,
+        Optional<Path> outputLog,
+        boolean confirmMotorTurnOff) {
 
     public static class Builder {
         private URI dornaUrl;
         private Optional<Path> outputLog = Optional.empty();
         private boolean confirmMotorTurnOff = true;
+        private DornaRobotModel model;
 
-        public Builder(URI dornaUrl) {
+        public Builder(URI dornaUrl, DornaRobotModel model) {
             this.dornaUrl = dornaUrl;
+            this.model = model;
             if (!this.dornaUrl.isAbsolute()) {
                 throw new IllegalArgumentException("dornaUrl must be an absolute URI");
             }
@@ -61,13 +67,17 @@ public record DornaClientConfig(
          * <p>The warning does not happen when robot is in {@link Joints#HOME_DORNA2_BLACK}
          * position.
          */
+        @DornaDocReference(
+                name = "Dorna Robot User Manual",
+                version = "Last update on Aug 30, 2023",
+                paragraph = "Dorna Lab: Motors")
         public Builder confirmMotorShutOff(boolean confirmMotorShutOff) {
             this.confirmMotorTurnOff = confirmMotorShutOff;
             return this;
         }
 
         public DornaClientConfig build() {
-            return new DornaClientConfig(this.dornaUrl, this.outputLog, confirmMotorTurnOff);
+            return new DornaClientConfig(dornaUrl, model, outputLog, confirmMotorTurnOff);
         }
     }
 }

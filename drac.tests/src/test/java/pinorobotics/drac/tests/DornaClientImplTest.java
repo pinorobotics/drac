@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.DornaClientConfig;
+import pinorobotics.drac.DornaRobotModel;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.impl.CommandServerListener;
@@ -64,7 +65,7 @@ public class DornaClientImplTest {
     @Test
     public void test_joint() {
         try (var client = createClient("recording_joint")) {
-            var j = Joints.HOME_DORNA2_BLACK.toArray();
+            var j = DornaRobotModel.DORNA2_BLACK.home().toArray();
             j[3] = 100;
             client.joint(Joints.of(j));
         }
@@ -73,7 +74,7 @@ public class DornaClientImplTest {
     @Test
     public void test_jmove_zero_velocity() {
         try (var client = createClient("recording_jmove")) {
-            var joints = Joints.HOME_DORNA2_BLACK;
+            var joints = DornaRobotModel.DORNA2_BLACK.home();
             var ex =
                     Assertions.assertThrows(
                             DornaClientException.class, () -> client.jmove(joints, false, 0, 0, 0));
@@ -149,7 +150,9 @@ public class DornaClientImplTest {
                                 outputLog);
                     }
                 };
-        var configBuilder = new DornaClientConfig.Builder(URI.create("ws://dorna"));
+        var configBuilder =
+                new DornaClientConfig.Builder(
+                        URI.create("ws://dorna"), DornaRobotModel.DORNA2_BLACK);
         outputLog.ifPresent(configBuilder::outputLog);
         return new DornaClientImpl(configBuilder.build(), factory);
     }

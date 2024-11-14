@@ -28,12 +28,14 @@ import pinorobotics.drac.impl.DornaClientImpl;
 public class DornaClientFactory {
 
     /**
-     * Create Dorna client
+     * Create client to Dorna2 Black (for other models use {@link #createClient(DornaClientConfig)}
+     * with explicit {@link DornaRobotModel})
      *
      * @param dornaUrl websocket URL of the Dorna Command Server
      */
     public DornaClient createClient(URI dornaUrl) {
-        return new DornaClientImpl(new DornaClientConfig.Builder(dornaUrl).build());
+        return new DornaClientImpl(
+                new DornaClientConfig.Builder(dornaUrl, DornaRobotModel.DORNA2_BLACK).build());
     }
 
     /** Create Dorna client with given configuration */

@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.DornaClientConfig;
+import pinorobotics.drac.DornaRobotModel;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
@@ -148,8 +149,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         LOGGER.info("Call motor command with isOn {0}", isOn);
 
         if (!isOn) {
-            if (Joints.EUCLID_DISTANCE_COMPARATOR.compare(
-                            getLastMotion().joints(), Joints.HOME_DORNA2_BLACK)
+            if (Joints.EUCLID_DISTANCE_COMPARATOR.compare(getLastMotion().joints(), model().home())
                     > 5) {
                 if (dornaClientConfig.confirmMotorTurnOff()) {
                     LOGGER.warning(
@@ -170,7 +170,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                     // if stream is closed then wait indefinitely
                                     XThread.sleep(Long.MAX_VALUE);
                                 } else if (key == 'h') {
-                                    jmove(Joints.HOME_DORNA2_BLACK, false);
+                                    home();
                                 }
                             });
                 }
@@ -244,5 +244,10 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                 throw new DornaClientException(e);
             }
         }
+    }
+
+    @Override
+    public DornaRobotModel model() {
+        return dornaClientConfig.model();
     }
 }

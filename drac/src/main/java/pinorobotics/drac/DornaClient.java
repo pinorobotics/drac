@@ -78,6 +78,11 @@ public interface DornaClient extends AutoCloseable {
      */
 
     /**
+     * @return Dorna model to which this client instance connects
+     */
+    DornaRobotModel model();
+
+    /**
      * Last motion message received from the Command Server
      *
      * <p>This is offline operation.
@@ -154,6 +159,17 @@ public interface DornaClient extends AutoCloseable {
      * }</pre>
      */
     void play(List<String> script) throws DornaClientException;
+
+    /**
+     * Home all joints of the Dorna arm.
+     *
+     * <p>Before turning off motors it is recommended to put it into home position.
+     *
+     * @see DornaRobotModel#DORNA2_BLACK{@link #home()}
+     */
+    default void home() throws DornaClientException {
+        jmove(model().home(), false);
+    }
 
     @Override
     void close();
