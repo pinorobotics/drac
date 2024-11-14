@@ -54,6 +54,10 @@ public record Joints(
         this(0, 0, 0, 0, 0, 0, 0, 0);
     }
 
+    public Joints(double j0, double j1, double j2, double j3, double j4) {
+        this(j0, j1, j2, j3, j4, 0, 0, 0);
+    }
+
     public double[] toArray() {
         return new double[] {j0, j1, j2, j3, j4, j5, j6, j7};
     }
