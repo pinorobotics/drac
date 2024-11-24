@@ -32,8 +32,11 @@ public record DornaRobotModel(
     public static final DornaRobotModel DORNA2_BLACK =
             new DornaRobotModel(
                     "Dorna 2 Black",
-                    new double[] {-175, -90, -142, -135, Double.NaN},
-                    new double[] {180, 180, 142, 135, Double.NaN},
+                    // -3.0543, -1.5707, -2.4783, -2.3561 (in radians)
+                    new double[] {-175, -90, -142, -135, Double.NEGATIVE_INFINITY},
+                    // 3.1415, 3.1415, 2.4783, 2.3561 (in radians)
+                    new double[] {180, 180, 142, 135, Double.POSITIVE_INFINITY},
+                    // 3.1415, 3.1415, -2.4783, 2.3561, 0.0 (in radians)
                     new Joints(180.0, 180.0, -142.0, 135.0, 0.0, 0.0, 0.0, 0.0));
 
     @DornaDocReference(
@@ -43,8 +46,8 @@ public record DornaRobotModel(
     public static final DornaRobotModel DORNA2_BLUE =
             new DornaRobotModel(
                     "Dorna 2 Blue",
-                    new double[] {-175, -90, -142, -135, Double.NaN},
-                    new double[] {180, 180, 142, 135, Double.NaN},
+                    new double[] {-175, -90, -142, -135, Double.NEGATIVE_INFINITY},
+                    new double[] {180, 180, 142, 135, Double.POSITIVE_INFINITY},
                     new Joints(180.0, 180.0, -142.0, 135.0, 0.0, 0.0, 0.0, 0.0));
 
     @DornaDocReference(
@@ -54,8 +57,8 @@ public record DornaRobotModel(
     public static final DornaRobotModel DORNA2S =
             new DornaRobotModel(
                     "Dorna 2S",
-                    new double[] {-175, -91, -142, -135, Double.NaN},
-                    new double[] {180, 181, 142, 135, Double.NaN},
+                    new double[] {-175, -91, -142, -135, Double.NEGATIVE_INFINITY},
+                    new double[] {180, 181, 142, 135, Double.POSITIVE_INFINITY},
                     new Joints(180.0, 181.0, -142.0, 135.0, 0.0, 0.0, 0.0, 0.0));
 
     /**

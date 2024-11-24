@@ -82,6 +82,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     @Override
     public void joint(Joints joints) throws DornaClientException {
+        verifyLimits(joints);
         start();
         LOGGER.info("Call joint command");
         var id = idGenerator.nextId();
@@ -109,9 +110,25 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         }
     }
 
+    private void verifyLimits(Joints joints) {
+        var lower = model().lowerLimit();
+        var upper = model().upperLimit();
+        var actual = joints.toArray();
+        for (int i = 0; i < lower.length; i++) {
+            Preconditions.isTrue(
+                    lower[i] <= actual[i] && actual[i] <= upper[i],
+                    "Joint %d is out of limits: actual %f, limit [%f, %f]",
+                    i,
+                    actual[i],
+                    lower[i],
+                    upper[i]);
+        }
+    }
+
     @Override
     public void jmove(
             Joints joints, boolean isRelative, double velocity, double acceleration, double jerk) {
+        verifyLimits(joints);
         start();
         LOGGER.info("Call jmove command");
         var id = idGenerator.nextId();

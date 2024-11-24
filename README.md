@@ -1,6 +1,6 @@
 **drac** - Java client for [Dorna](https://dorna.ai/) robotic arm.
 
-NOTE: This is unofficial Dorna Java client. For official Dona software follow https://dorna.ai/
+NOTE: This is unofficial Dorna Java client. For official Dorna software follow https://dorna.ai/
 
 # Requirements
 

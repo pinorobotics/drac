@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
+ * Joint values are given in degrees.
+ *
  * @author lambdaprime intid@protonmail.com
  */
 public record Joints(
@@ -44,10 +46,21 @@ public record Joints(
             };
 
     public static Joints of(double[] joints) {
-        Preconditions.equals(8, joints.length, "Mismatch in number of joints");
+        Preconditions.isLessOrEqual(8, joints.length, "Mismatch in number of joints");
+        if (joints.length < 8) {
+            joints = Arrays.copyOf(joints, 8);
+        }
         return new Joints(
                 joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6],
                 joints[7]);
+    }
+
+    public static Joints ofRadians(double[] joints) {
+        var buf = new double[8];
+        for (int i = 0; i < joints.length; i++) {
+            buf[i] = Math.toDegrees(joints[i]);
+        }
+        return of(buf);
     }
 
     public Joints() {

@@ -17,6 +17,7 @@
  */
 package pinorobotics.drac.tests;
 
+import id.xfunction.PreconditionException;
 import id.xfunction.ResourceUtils;
 import id.xfunction.lang.XThread;
 import java.io.IOException;
@@ -87,6 +88,21 @@ public class DornaClientImplTest {
     }
 
     @Test
+    public void test_jmove_limits() {
+        try (var client = createClient("recording_jmove")) {
+            var joints = DornaRobotModel.DORNA2_BLACK.home().toArray();
+            joints[2] -= 1;
+            var ex =
+                    Assertions.assertThrows(
+                            PreconditionException.class,
+                            () -> client.jmove(Joints.of(joints), false, 0, 0, 0));
+            Assertions.assertEquals(
+                    "Joint 2 is out of limits: actual -143.000000, limit [-142.000000, 142.000000]",
+                    ex.getMessage());
+        }
+    }
+
+    @Test
     public void test_motor_safe_to_turn_off() throws Exception {
         try (var client = createClient("recording_motor_safe_to_turn_off")) {
             client.motor(true);
@@ -113,8 +129,8 @@ public class DornaClientImplTest {
         Assertions.assertEquals(
                 """
 {"cmd":"motor","id":1,"motor":1}
-{"cmd":"jmove","id":2,"j0":180.000000,"j1":180.018000,"j2":-142.000000,"j3":125.011250,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
-{"cmd":"jmove","id":3,"j0":180.000000,"j1":180.018000,"j2":-142.000000,"j3":135.011250,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
+{"cmd":"jmove","id":2,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":125.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
+{"cmd":"jmove","id":3,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":135.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
 {"cmd":"motor","id":4,"motor":0}
                 """,
                 Files.readString(outputLog));
