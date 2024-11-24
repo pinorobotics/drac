@@ -75,6 +75,19 @@ public record Joints(
         return new double[] {j0, j1, j2, j3, j4, j5, j6, j7};
     }
 
+    public double[] toArrayOfRadians() {
+        return new double[] {
+            Math.toRadians(j0),
+            Math.toRadians(j1),
+            Math.toRadians(j2),
+            Math.toRadians(j3),
+            Math.toRadians(j4),
+            Math.toRadians(j5),
+            Math.toRadians(j6),
+            Math.toRadians(j7)
+        };
+    }
+
     @Override
     public final String toString() {
         return Arrays.toString(toArray());
