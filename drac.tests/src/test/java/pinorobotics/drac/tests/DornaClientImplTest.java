@@ -17,6 +17,7 @@
  */
 package pinorobotics.drac.tests;
 
+import id.opentelemetry.exporters.extensions.ElasticsearchMetricsExtension;
 import id.xfunction.PreconditionException;
 import id.xfunction.ResourceUtils;
 import id.xfunction.lang.XThread;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.DornaClientConfig;
 import pinorobotics.drac.DornaRobotModel;
@@ -42,6 +44,7 @@ import pinorobotics.drac.impl.MessageProcessor;
 /**
  * @author lambdaprime intid@protonmail.com
  */
+@ExtendWith({ElasticsearchMetricsExtension.class})
 public class DornaClientImplTest {
     private static final ResourceUtils resourceUtils = new ResourceUtils();
 

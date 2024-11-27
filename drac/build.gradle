@@ -29,6 +29,7 @@ eclipse.classpath.file {
 
 dependencies {
   implementation "io.github.lambdaprime:id.xfunction:27.0-SNAPSHOT"
+  implementation "io.opentelemetry:opentelemetry-api:1.43.0"
 
   def jacksonVersion = "2.18.1"
   implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"

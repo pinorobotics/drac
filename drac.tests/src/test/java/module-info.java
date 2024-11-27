@@ -9,4 +9,5 @@ module drac.tests {
     requires transitive java.net.http;
     requires id.xfunction;
     requires org.junit.jupiter.params;
+    requires id.opentelemetry.exporters.pack.junit;
 }

@@ -11,4 +11,5 @@ module drac {
     requires id.xfunction;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires io.opentelemetry.api;
 }

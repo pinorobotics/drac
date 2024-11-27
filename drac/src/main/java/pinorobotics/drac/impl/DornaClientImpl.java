@@ -22,12 +22,19 @@ import id.xfunction.function.Unchecked;
 import id.xfunction.lang.XThread;
 import id.xfunction.logging.XLogger;
 import id.xfunction.util.IdempotentService;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongHistogram;
+import io.opentelemetry.api.metrics.Meter;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.DornaClientConfig;
 import pinorobotics.drac.DornaRobotModel;
+import pinorobotics.drac.DracMetrics;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
@@ -39,6 +46,73 @@ import pinorobotics.drac.messages.Motion;
  */
 public class DornaClientImpl extends IdempotentService implements DornaClient {
     private static final XLogger LOGGER = XLogger.getLogger(DornaClientImpl.class);
+    private static final Meter METER =
+            GlobalOpenTelemetry.getMeter(DornaClientImpl.class.getSimpleName());
+    private static final LongCounter VERSION_COUNT_METER =
+            METER.counterBuilder(DracMetrics.VERSION_COUNT_METRIC)
+                    .setDescription(DracMetrics.VERSION_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter VERSION_FAILED_COUNT_METER =
+            METER.counterBuilder(DracMetrics.VERSION_FAILED_COUNT_METRIC)
+                    .setDescription(DracMetrics.VERSION_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram VERSION_TIME_METER =
+            METER.histogramBuilder(DracMetrics.VERSION_TIME_METRIC)
+                    .setDescription(DracMetrics.VERSION_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
+    private static final LongCounter JOINT_COUNT_METER =
+            METER.counterBuilder(DracMetrics.JOINT_COUNT_METRIC)
+                    .setDescription(DracMetrics.JOINT_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter JOINT_FAILED_COUNT_METER =
+            METER.counterBuilder(DracMetrics.JOINT_FAILED_COUNT_METRIC)
+                    .setDescription(DracMetrics.JOINT_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram JOINT_TIME_METER =
+            METER.histogramBuilder(DracMetrics.JOINT_TIME_METRIC)
+                    .setDescription(DracMetrics.JOINT_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
+    private static final LongCounter JMOVE_COUNT_METER =
+            METER.counterBuilder(DracMetrics.JMOVE_COUNT_METRIC)
+                    .setDescription(DracMetrics.JMOVE_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter JMOVE_FAILED_COUNT_METER =
+            METER.counterBuilder(DracMetrics.JMOVE_FAILED_COUNT_METRIC)
+                    .setDescription(DracMetrics.JMOVE_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram JMOVE_TIME_METER =
+            METER.histogramBuilder(DracMetrics.JMOVE_TIME_METRIC)
+                    .setDescription(DracMetrics.JMOVE_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
+    private static final LongCounter MOTOR_COUNT_METER =
+            METER.counterBuilder(DracMetrics.MOTOR_COUNT_METRIC)
+                    .setDescription(DracMetrics.MOTOR_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter MOTOR_FAILED_COUNT_METER =
+            METER.counterBuilder(DracMetrics.MOTOR_FAILED_COUNT_METRIC)
+                    .setDescription(DracMetrics.MOTOR_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram MOTOR_TIME_METER =
+            METER.histogramBuilder(DracMetrics.MOTOR_TIME_METRIC)
+                    .setDescription(DracMetrics.MOTOR_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
+    private static final LongCounter PLAY_COUNT_METER =
+            METER.counterBuilder(DracMetrics.PLAY_COUNT_METRIC)
+                    .setDescription(DracMetrics.PLAY_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongCounter PLAY_FAILED_COUNT_METER =
+            METER.counterBuilder(DracMetrics.PLAY_FAILED_COUNT_METRIC)
+                    .setDescription(DracMetrics.PLAY_FAILED_COUNT_METRIC_DESCRIPTION)
+                    .build();
+    private static final LongHistogram PLAY_TIME_METER =
+            METER.histogramBuilder(DracMetrics.PLAY_TIME_METRIC)
+                    .setDescription(DracMetrics.PLAY_TIME_METRIC_DESCRIPTION)
+                    .ofLongs()
+                    .build();
 
     private MessageProcessor messageProc = new MessageProcessor();
     private IdGenerator idGenerator = new IdGenerator();
@@ -67,16 +141,21 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     @Override
     public int version() throws DornaClientException {
         start();
+        var startAt = Instant.now();
         LOGGER.info("Call version command");
         var future = messageProc.await(CommandType.VERSION);
         webSocket.request(1);
         var command = """
                 {"cmd":"%s"}""".formatted(CommandType.VERSION);
+        VERSION_COUNT_METER.add(1);
         webSocket.sendText(command);
         try {
             return future.get().get("version", Integer.class);
         } catch (InterruptedException | ExecutionException e) {
+            VERSION_FAILED_COUNT_METER.add(1);
             throw new DornaClientException(e);
+        } finally {
+            VERSION_TIME_METER.record(Duration.between(startAt, Instant.now()).toMillis());
         }
     }
 
@@ -84,6 +163,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     public void joint(Joints joints) throws DornaClientException {
         verifyLimits(joints);
         start();
+        var startAt = Instant.now();
         LOGGER.info("Call joint command");
         var id = idGenerator.nextId();
         var future = messageProc.awaitResult(id);
@@ -102,11 +182,15 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 joints.j5(),
                                 joints.j6(),
                                 joints.j7());
+        JOINT_COUNT_METER.add(1);
         webSocket.sendText(command);
         try {
             Preconditions.equals(joints, future.get().joints());
         } catch (InterruptedException | ExecutionException e) {
+            JOINT_FAILED_COUNT_METER.add(1);
             throw new DornaClientException(e);
+        } finally {
+            JOINT_TIME_METER.record(Duration.between(startAt, Instant.now()).toMillis());
         }
     }
 
@@ -130,6 +214,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
             Joints joints, boolean isRelative, double velocity, double acceleration, double jerk) {
         verifyLimits(joints);
         start();
+        var startAt = Instant.now();
         LOGGER.info("Call jmove command");
         var id = idGenerator.nextId();
         var future = messageProc.awaitCompletion(id);
@@ -152,11 +237,15 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 velocity,
                                 acceleration,
                                 jerk);
+        JMOVE_COUNT_METER.add(1);
         webSocket.sendText(command);
         try {
             future.get();
         } catch (InterruptedException | ExecutionException e) {
+            JMOVE_FAILED_COUNT_METER.add(1);
             throw new DornaClientException(e);
+        } finally {
+            JMOVE_TIME_METER.record(Duration.between(startAt, Instant.now()).toMillis());
         }
     }
 
@@ -164,7 +253,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     public void motor(boolean isOn) throws DornaClientException {
         start();
         LOGGER.info("Call motor command with isOn {0}", isOn);
-
+        var startAt = Instant.now();
         if (!isOn) {
             if (Joints.EUCLID_DISTANCE_COMPARATOR.compare(getLastMotion().joints(), model().home())
                     > 5) {
@@ -202,12 +291,16 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                 """
                 {"cmd":"%s","id":%d,"motor":%d}"""
                         .formatted(CommandType.MOTOR, id, val);
+        MOTOR_COUNT_METER.add(1);
         webSocket.sendText(command);
 
         try {
             Preconditions.equals(val, future.get().get("motor", Double.class).intValue());
         } catch (InterruptedException | ExecutionException e) {
+            MOTOR_FAILED_COUNT_METER.add(1);
             throw new DornaClientException(e);
+        } finally {
+            MOTOR_TIME_METER.record(Duration.between(startAt, Instant.now()).toMillis());
         }
     }
 
@@ -248,7 +341,9 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     @Override
     public void play(List<String> script) throws DornaClientException {
         start();
+        var startAt = Instant.now();
         LOGGER.info("Call play command");
+        PLAY_COUNT_METER.add(1);
         for (var messageJson : script) {
             var id = idGenerator.nextId();
             messageJson = MessageUtils.setId(messageJson, id);
@@ -258,9 +353,11 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
             try {
                 future.get();
             } catch (InterruptedException | ExecutionException e) {
+                PLAY_FAILED_COUNT_METER.add(1);
                 throw new DornaClientException(e);
             }
         }
+        PLAY_TIME_METER.record(Duration.between(startAt, Instant.now()).toMillis());
     }
 
     @Override

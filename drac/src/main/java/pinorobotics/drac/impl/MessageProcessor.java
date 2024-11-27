@@ -18,6 +18,9 @@
 package pinorobotics.drac.impl;
 
 import id.xfunction.logging.XLogger;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -25,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import pinorobotics.drac.CommandStatus;
 import pinorobotics.drac.CommandType;
+import pinorobotics.drac.DracMetrics;
 import pinorobotics.drac.Message;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
@@ -34,6 +38,12 @@ import pinorobotics.drac.messages.Motion;
  */
 public class MessageProcessor {
     private static final XLogger LOGGER = XLogger.getLogger(MessageProcessor.class);
+    private final Meter METER =
+            GlobalOpenTelemetry.getMeter(MessageProcessor.class.getSimpleName());
+    private final LongCounter MOTIO1N_MESSAGE_COUNT_METER =
+            METER.counterBuilder(DracMetrics.MOTIO1N_MESSAGE_COUNT_METRIC)
+                    .setDescription(DracMetrics.MOTION_MESSAGE_COUNT_METRIC_DESCRIPTION)
+                    .build();
     private Map<String, CompletableFuture<Message>> pendingCommands = new HashMap<>();
     private Map<Integer, CompletableFuture<Message>> pendingCommandsAwaitingResult =
             new HashMap<>();
@@ -46,6 +56,7 @@ public class MessageProcessor {
         var cmd = message.command();
         // since motion messages received more often than any other we process them first
         if (Objects.equals(cmd, CommandType.MOTION)) {
+            MOTIO1N_MESSAGE_COUNT_METER.add(1);
             lastMotion.update(message);
             return;
         }
