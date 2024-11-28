@@ -53,7 +53,7 @@ public class MotionHolder {
             ready.complete(null);
         } catch (Exception e) {
             LOGGER.warning("Could not parse Motion message: {0}", e.getMessage());
-            LOGGER.fine(e.getMessage(), e);
+            LOGGER.fine(e);
         }
     }
 

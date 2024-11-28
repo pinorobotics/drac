@@ -19,7 +19,10 @@ package pinorobotics.drac.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import id.xfunction.logging.XLogger;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import pinorobotics.drac.Message;
@@ -28,15 +31,22 @@ import pinorobotics.drac.Message;
  * @author lambdaprime intid@protonmail.com
  */
 public class MessageUtils {
+    private static final XLogger LOGGER = XLogger.getLogger(MessageUtils.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String REGEXP_ID = "\"id\"\\s*:\\s*\\d+";
+    private static volatile Entry<String, Message> cached = Map.entry("", new Message());
 
     public static Optional<Message> parse(String jsonMessage) {
         try {
-            Map<String, Object> message = MAPPER.readValue(jsonMessage, Map.class);
-            return Optional.of(new Message(message));
+            // keep local copy of reference in case other thread overwrites the original one
+            var ref = cached;
+            if (Objects.equals(ref.getKey(), jsonMessage)) return Optional.of(ref.getValue());
+            var message = new Message(MAPPER.readValue(jsonMessage, Map.class));
+            cached = Map.entry(jsonMessage, message);
+            return Optional.of(message);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOGGER.severe(e.getMessage());
+            LOGGER.fine(e);
             return Optional.empty();
         }
     }
