@@ -29,6 +29,7 @@ import io.opentelemetry.api.metrics.Meter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
@@ -211,20 +212,26 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     @Override
     public void jmove(
-            Joints joints, boolean isRelative, double velocity, double acceleration, double jerk) {
+            Joints joints,
+            boolean isRelative,
+            boolean isAsync,
+            double velocity,
+            double acceleration,
+            double jerk) {
         verifyLimits(joints);
         start();
         var startAt = Instant.now();
         LOGGER.info("Call jmove command");
-        var id = idGenerator.nextId();
-        var future = messageProc.awaitCompletion(id);
+        var id = isAsync ? -1 : idGenerator.nextId();
+        var future =
+                isAsync ? CompletableFuture.completedFuture(null) : messageProc.awaitCompletion(id);
         webSocket.request(1);
         var command =
                 """
-                {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f}"""
+                {"cmd":"%s"%s,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f}"""
                         .formatted(
                                 CommandType.JMOVE,
-                                id,
+                                isAsync ? "" : ",\"id\":" + id,
                                 joints.j0(),
                                 joints.j1(),
                                 joints.j2(),
@@ -335,7 +342,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     @Override
     public void jmove(Joints joints, boolean isRelative) throws DornaClientException {
-        jmove(joints, isRelative, velocity, acceleration, jerk);
+        jmove(joints, isRelative, false, velocity, acceleration, jerk);
     }
 
     @Override

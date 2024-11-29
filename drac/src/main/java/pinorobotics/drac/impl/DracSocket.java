@@ -19,7 +19,7 @@ package pinorobotics.drac.impl;
 
 import id.xfunction.logging.XLogger;
 import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.metrics.LongHistogram;
+import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import java.net.http.WebSocket;
 import java.nio.file.Path;
@@ -34,10 +34,9 @@ import pinorobotics.drac.exceptions.DornaClientException;
 public class DracSocket {
     private static final XLogger LOGGER = XLogger.getLogger(DracSocket.class);
     private final Meter METER = GlobalOpenTelemetry.getMeter(DracSocket.class.getSimpleName());
-    private final LongHistogram SENT_BYTES_COUNT_METER =
-            METER.histogramBuilder(DracMetrics.SENT_BYTES_COUNT_METRIC)
+    private final LongCounter SENT_BYTES_COUNT_METER =
+            METER.counterBuilder(DracMetrics.SENT_BYTES_COUNT_METRIC)
                     .setDescription(DracMetrics.SENT_BYTES_COUNT_METRIC_DESCRIPTION)
-                    .ofLongs()
                     .build();
     private WebSocket socket;
     private Optional<FileAppender> outputLog;
@@ -53,7 +52,7 @@ public class DracSocket {
         outputLog.ifPresent(out -> out.append(command));
         try {
             socket.sendText(command, true).get();
-            SENT_BYTES_COUNT_METER.record(command.length());
+            SENT_BYTES_COUNT_METER.add(command.length());
         } catch (InterruptedException | ExecutionException e) {
             throw new DornaClientException(e);
         }

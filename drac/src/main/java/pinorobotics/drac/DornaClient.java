@@ -62,9 +62,17 @@ public interface DornaClient extends AutoCloseable {
     void jmove(Joints joints, boolean isRelative) throws DornaClientException;
 
     /**
+     * @param isAsync send command and do not wait for it completion (no unique id is assigned to
+     *     the command)
      * @see <a href="https://doc.dorna.ai/docs/cmd/joint%20move/">jmove command</a>
      */
-    void jmove(Joints joints, boolean isRelative, double velocity, double acceleration, double jerk)
+    void jmove(
+            Joints joints,
+            boolean isRelative,
+            boolean isAsync,
+            double velocity,
+            double acceleration,
+            double jerk)
             throws DornaClientException;
 
     /**

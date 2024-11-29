@@ -81,7 +81,8 @@ public class DornaClientImplTest {
             var joints = DornaRobotModel.DORNA2_BLACK.home();
             var ex =
                     Assertions.assertThrows(
-                            DornaClientException.class, () -> client.jmove(joints, false, 0, 0, 0));
+                            DornaClientException.class,
+                            () -> client.jmove(joints, false, false, 0, 0, 0));
             Assertions.assertEquals(
                     "java.util.concurrent.ExecutionException:"
                         + " pinorobotics.drac.exceptions.DornaClientException: Command  failed with"
@@ -98,7 +99,7 @@ public class DornaClientImplTest {
             var ex =
                     Assertions.assertThrows(
                             PreconditionException.class,
-                            () -> client.jmove(Joints.of(joints), false, 0, 0, 0));
+                            () -> client.jmove(Joints.of(joints), false, false, 0, 0, 0));
             Assertions.assertEquals(
                     "Joint 2 is out of limits: actual -143.000000, limit [-142.000000, 142.000000]",
                     ex.getMessage());
