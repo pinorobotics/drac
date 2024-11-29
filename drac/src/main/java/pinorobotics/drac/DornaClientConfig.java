@@ -29,13 +29,24 @@ public record DornaClientConfig(
         URI dornaUrl,
         DornaRobotModel model,
         Optional<Path> outputLog,
-        boolean confirmMotorTurnOff) {
+        boolean confirmMotorTurnOff,
+        double velocity,
+        double acceleration,
+        double jerk) {
 
     public static class Builder {
+
+        public static final double DEFAULT_VELOCITY = 25;
+        public static final double DEFAULT_ACCEL = 500;
+        public static final double DEFAULT_JERK = 2500;
+
         private URI dornaUrl;
         private Optional<Path> outputLog = Optional.empty();
         private boolean confirmMotorTurnOff = true;
         private DornaRobotModel model;
+        private double velocity = DEFAULT_VELOCITY;
+        private double acceleration = DEFAULT_ACCEL;
+        private double jerk = DEFAULT_JERK;
 
         public Builder(URI dornaUrl, DornaRobotModel model) {
             this.dornaUrl = dornaUrl;
@@ -76,8 +87,39 @@ public record DornaClientConfig(
             return this;
         }
 
+        /**
+         * Velocity for all motion commands
+         *
+         * <p>Default {@link #DEFAULT_VELOCITY}
+         */
+        public Builder velocity(double velocity) {
+            this.velocity = velocity;
+            return this;
+        }
+
+        /**
+         * Acceleration for all motion commands
+         *
+         * <p>Default {@link #DEFAULT_ACCEL}
+         */
+        public Builder acceleration(double accel) {
+            this.acceleration = accel;
+            return this;
+        }
+
+        /**
+         * Jerk for all motion commands
+         *
+         * <p>Default {@link #DEFAULT_JERK}
+         */
+        public Builder jerk(double jerk) {
+            this.jerk = jerk;
+            return this;
+        }
+
         public DornaClientConfig build() {
-            return new DornaClientConfig(dornaUrl, model, outputLog, confirmMotorTurnOff);
+            return new DornaClientConfig(
+                    dornaUrl, model, outputLog, confirmMotorTurnOff, velocity, acceleration, jerk);
         }
     }
 }

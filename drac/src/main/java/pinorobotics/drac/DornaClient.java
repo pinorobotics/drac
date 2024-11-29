@@ -34,10 +34,6 @@ import pinorobotics.drac.messages.Motion;
  */
 public interface DornaClient extends AutoCloseable {
 
-    double DEFAULT_VELOCITY = 25;
-    double DEFAULT_ACCEL = 500;
-    double DEFAULT_JERK = 2500;
-
     /*
      *  Dorna commands goes below
      */
@@ -96,32 +92,6 @@ public interface DornaClient extends AutoCloseable {
      * <p>This is offline operation.
      */
     Motion getLastMotion();
-
-    /**
-     * Change velocity for all motion commands of this client instance. Default is {@link
-     * #DEFAULT_VELOCITY}
-     *
-     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
-     * Command Server. Instead it is included later in all motion commands.
-     */
-    void setVelocity(double vel);
-
-    /**
-     * Change acceleration for all motion commands of this client instance. Default is {@link
-     * #DEFAULT_ACCEL}
-     *
-     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
-     * Command Server. Instead it is included later in all motion commands.
-     */
-    void setAcceleration(double accel);
-
-    /**
-     * Change jerk for all motion commands of this client instance. Default is {@link #DEFAULT_JERK}
-     *
-     * <p>This is offline operation. The value is stored internally and it is not sent to the Dorna
-     * Command Server. Instead it is included later in all motion commands.
-     */
-    void setJerk(double jerk);
 
     /**
      * Send list of recorded commands to Dorna Command Server.

@@ -117,9 +117,6 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
 
     private MessageProcessor messageProc = new MessageProcessor();
     private IdGenerator idGenerator = new IdGenerator();
-    private double velocity = DEFAULT_VELOCITY;
-    private double acceleration = DEFAULT_ACCEL;
-    private double jerk = DEFAULT_JERK;
     private DornaClientConfig dornaClientConfig;
     private DracSocket webSocket;
     private DracSocketFactory socketFactory;
@@ -326,23 +323,14 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     }
 
     @Override
-    public void setVelocity(double velocity) {
-        this.velocity = velocity;
-    }
-
-    @Override
-    public void setAcceleration(double accel) {
-        this.acceleration = accel;
-    }
-
-    @Override
-    public void setJerk(double jerk) {
-        this.jerk = jerk;
-    }
-
-    @Override
     public void jmove(Joints joints, boolean isRelative) throws DornaClientException {
-        jmove(joints, isRelative, false, velocity, acceleration, jerk);
+        jmove(
+                joints,
+                isRelative,
+                false,
+                dornaClientConfig.velocity(),
+                dornaClientConfig.acceleration(),
+                dornaClientConfig.jerk());
     }
 
     @Override
