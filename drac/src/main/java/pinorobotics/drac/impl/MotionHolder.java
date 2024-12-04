@@ -21,7 +21,6 @@ import id.xfunction.logging.XLogger;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import pinorobotics.drac.Message;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
 

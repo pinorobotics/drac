@@ -15,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pinorobotics.drac;
+package pinorobotics.drac.impl;
 
 import java.util.Map;
 import java.util.Optional;
+import pinorobotics.drac.CommandType;
+import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 
 /**
