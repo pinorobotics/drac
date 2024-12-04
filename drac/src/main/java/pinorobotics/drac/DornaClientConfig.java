@@ -75,8 +75,8 @@ public record DornaClientConfig(
          * <p>To prevent this from happening, every time when user turns off the motor we show a
          * warning message and wait until user confirms if it is safe to proceed.
          *
-         * <p>The warning does not happen when robot is in {@link Joints#HOME_DORNA2_BLACK}
-         * position.
+         * <p>The warning does not happen when robot is in {@link
+         * pinorobotics.drac.DornaRobotModel#home()} position.
          */
         @DornaDocReference(
                 name = "Dorna Robot User Manual",

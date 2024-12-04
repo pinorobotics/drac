@@ -50,10 +50,10 @@ public interface DornaClient extends AutoCloseable {
     void joint(Joints joints) throws DornaClientException;
 
     /**
-     * Calls {@link #jmove(Joints, boolean, double, double, double)} with with current values ({@link
-     * #setVeloctiry(double), ...)
+     * Calls {@link #jmove(Joints, boolean, boolean, double, double, double)} with default velocity,
+     * acceleration, jerk
      *
-     * @see #jmove(Joints, boolean, double, double, double)
+     * @see #jmove(Joints, boolean, boolean, double, double, double)
      */
     void jmove(Joints joints, boolean isRelative) throws DornaClientException;
 
@@ -96,10 +96,10 @@ public interface DornaClient extends AutoCloseable {
     /**
      * Send list of recorded commands to Dorna Command Server.
      *
-     * <p>Commands must be given is JSON format with one command per line (same as they are used in
+     * <p>Commands must be given in JSON format with one command per line (same as they are used in
      * DornaLab)
      *
-     * @see {@link #play(List)}
+     * @see #play(List)
      */
     default void play(Path script) throws DornaClientException {
         try {
@@ -113,7 +113,7 @@ public interface DornaClient extends AutoCloseable {
      * @param script multi-line string with one command per line. Each command must be in JSON
      *     format.
      * @throws DornaClientException
-     * @see {@link #play(List)}
+     * @see #play(List)
      */
     default void play(String script) throws DornaClientException {
         play(script.lines().toList());
@@ -129,11 +129,12 @@ public interface DornaClient extends AutoCloseable {
      * <p>If any of the command has "id" field set then there is no guarantee that it will be
      * preserved. It can be replaced with a client managed id.
      *
-     * @param script list of commands in JSON format. Example:
+     * @param script list of commands in JSON format. Example with text-block:
      *     <pre>{@code
+     * """
      * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":135,"j4":0}
      * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":91.9125,"j4":0.225}
-     * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":53.2125,"j4":0.27}
+     * {"cmd":"jmove","rel":0,"j0":180,"j1":180,"j2":-142,"j3":53.2125,"j4":0.27}""".lines().toList()
      * }</pre>
      */
     void play(List<String> script) throws DornaClientException;
@@ -143,7 +144,7 @@ public interface DornaClient extends AutoCloseable {
      *
      * <p>Before turning off motors it is recommended to put it into home position.
      *
-     * @see DornaRobotModel#DORNA2_BLACK{@link #home()}
+     * @see DornaRobotModel#home()
      */
     default void home() throws DornaClientException {
         jmove(model().home(), false);

@@ -10,7 +10,10 @@ buildscript {
 
 plugins {
   id 'com.diffplug.spotless'
-  // only if you build Java library
+
+  // This plugin is important when you build Java library, as it provides "api" dependency configuration.
+  // - "implementation" dependency configuration declares all dependencies inside pom.xml as "runtime"
+  // - "api" dependency configuration declares all dependencies inside pom.xml as "compile"
   id 'java-library'
 }
 
@@ -28,11 +31,9 @@ eclipse.classpath.file {
 }
 
 dependencies {
-  implementation "io.github.lambdaprime:id.xfunction:27.0-SNAPSHOT"
-  implementation "io.opentelemetry:opentelemetry-api:1.43.0"
-
-  def jacksonVersion = "2.18.1"
-  implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+  api "io.github.lambdaprime:id.xfunction:27.0"
+  api "io.opentelemetry:opentelemetry-api:1.43.0"
+  api "com.fasterxml.jackson.core:jackson-databind:2.18.1"
 }
 
 configurations {
