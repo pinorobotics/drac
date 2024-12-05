@@ -35,10 +35,10 @@ import pinorobotics.drac.CommandType;
 import pinorobotics.drac.DornaClient;
 import pinorobotics.drac.DornaClientConfig;
 import pinorobotics.drac.DornaRobotModel;
-import pinorobotics.drac.DracMetrics;
 import pinorobotics.drac.Joints;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
+import pinorobotics.drac.metrics.DracMetrics;
 
 /**
  * Client to Dorna Command Server

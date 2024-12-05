@@ -28,9 +28,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import pinorobotics.drac.CommandStatus;
 import pinorobotics.drac.CommandType;
-import pinorobotics.drac.DracMetrics;
 import pinorobotics.drac.exceptions.DornaClientException;
 import pinorobotics.drac.messages.Motion;
+import pinorobotics.drac.metrics.DracMetrics;
 
 /**
  * @author lambdaprime intid@protonmail.com

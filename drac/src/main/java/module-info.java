@@ -3,11 +3,13 @@
  * 
  * <p>NOTE: This is unofficial Dorna Java client. For official Dorna software follow <a href="https://dorna.ai">dorna.ai</a>
  * 
+ * <p>Interaction with Dorna robots is done by communicating with Command Server over a websocket.
+ *  
  * <p>Available features:
  * <ul>
  * <li>Configuration of moving velocity, acceleration, and jerk through {@link pinorobotics.drac.DornaClientConfig.Builder}
  * <li>Support for asynchronous move commands and caching of last serialized messages (see {@link pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, double, double, double)})
- * <li>Integration with <a href="https://opentelemetry.io/">OpenTelemetry</a> for metrics tracking and performance analysis (see {@link pinorobotics.drac.DracMetrics})
+ * <li>Integration with <a href="https://opentelemetry.io/">OpenTelemetry</a> for metrics tracking and performance analysis (see {@link pinorobotics.drac.metrics.DracMetrics})
  * <li>Verification of joint limits before each move command to prevent potential damage.
  * <li>Support for different Dorna models (see {@link pinorobotics.drac.DornaRobotModel})
  * <li>Safety warnings before turning off the motor (see {@link pinorobotics.drac.DornaClientConfig.Builder#confirmMotorShutOff})
@@ -47,6 +49,7 @@ try (var client = new DornaClientFactory().createClient(configBuilder.build())) 
 module drac {
     exports pinorobotics.drac;
     exports pinorobotics.drac.messages;
+    exports pinorobotics.drac.metrics;
     exports pinorobotics.drac.exceptions;
     exports pinorobotics.drac.impl to
             drac.tests;

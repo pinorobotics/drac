@@ -25,8 +25,8 @@ import java.net.http.WebSocket;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import pinorobotics.drac.DracMetrics;
 import pinorobotics.drac.exceptions.DornaClientException;
+import pinorobotics.drac.metrics.DracMetrics;
 
 /**
  * @author lambdaprime intid@protonmail.com
