@@ -35,8 +35,13 @@ public record Motion(
         double vel,
         double accel) {
 
+    /** Motion with all zeros */
     public Motion() {
-        this(new Joints(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        this(new Joints());
+    }
+
+    public Motion(Joints joints) {
+        this(joints, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     @Override

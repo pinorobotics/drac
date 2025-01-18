@@ -15,6 +15,7 @@
  * <li>Safety warnings before turning off the motor (see {@link pinorobotics.drac.DornaClientConfig.Builder#confirmMotorShutOff})
  * <li>Recording of all commands sent to the Dorna arm in a log file (see {@link pinorobotics.drac.DornaClientConfig.Builder#outputLog(Path)})
  * <li>Implementation of various predefined Dorna command statuses (see {@link pinorobotics.drac.CommandStatus.Predefined})
+ * <li>Noop (no operation) mode which is useful during testing or when no Dorna arm is present (see {@link pinorobotics.drac.DornaClientConfig.Builder#noopMode})
  * </ul>
  * 
  * <b>drac</b> may be helpful for those working with Dorna robots in research, manufacturing, or other relevant fields.

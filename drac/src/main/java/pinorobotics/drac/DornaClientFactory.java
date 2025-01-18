@@ -19,6 +19,7 @@ package pinorobotics.drac;
 
 import java.net.URI;
 import pinorobotics.drac.impl.DornaClientImpl;
+import pinorobotics.drac.impl.DornaClientNoop;
 
 /**
  * Factory class for {@link DornaClient}
@@ -34,12 +35,12 @@ public class DornaClientFactory {
      * @param dornaUrl websocket URL of the Dorna Command Server
      */
     public DornaClient createClient(URI dornaUrl) {
-        return new DornaClientImpl(
+        return createClient(
                 new DornaClientConfig.Builder(dornaUrl, DornaRobotModel.DORNA2_BLACK).build());
     }
 
     /** Create Dorna client with given configuration */
     public DornaClient createClient(DornaClientConfig config) {
-        return new DornaClientImpl(config);
+        return config.noop() ? new DornaClientNoop(config) : new DornaClientImpl(config);
     }
 }

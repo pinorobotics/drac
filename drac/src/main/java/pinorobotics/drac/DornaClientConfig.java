@@ -32,7 +32,8 @@ public record DornaClientConfig(
         boolean confirmMotorTurnOff,
         double velocity,
         double acceleration,
-        double jerk) {
+        double jerk,
+        boolean noop) {
 
     public static class Builder {
 
@@ -47,6 +48,7 @@ public record DornaClientConfig(
         private double velocity = DEFAULT_VELOCITY;
         private double acceleration = DEFAULT_ACCEL;
         private double jerk = DEFAULT_JERK;
+        private boolean noop;
 
         public Builder(URI dornaUrl, DornaRobotModel model) {
             this.dornaUrl = dornaUrl;
@@ -117,9 +119,27 @@ public record DornaClientConfig(
             return this;
         }
 
+        /**
+         * Enable/disable "No Operation" mode when no commands are sent to the Command Server and
+         * are ignored.
+         *
+         * <p>Useful for testing or when no Dorna robot is present.
+         */
+        public Builder noopMode(boolean noop) {
+            this.noop = noop;
+            return this;
+        }
+
         public DornaClientConfig build() {
             return new DornaClientConfig(
-                    dornaUrl, model, outputLog, confirmMotorTurnOff, velocity, acceleration, jerk);
+                    dornaUrl,
+                    model,
+                    outputLog,
+                    confirmMotorTurnOff,
+                    velocity,
+                    acceleration,
+                    jerk,
+                    noop);
         }
     }
 }
