@@ -9,6 +9,7 @@
  * <ul>
  * <li>Configuration of moving velocity, acceleration, and jerk through {@link pinorobotics.drac.DornaClientConfig.Builder}
  * <li>Support for asynchronous move commands and caching of last serialized messages (see {@link pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, double, double, double)})
+ * <li>Support for discrete/continuous move commands (see {@link pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, double, double, double)})
  * <li>Integration with <a href="https://opentelemetry.io/">OpenTelemetry</a> for metrics tracking and performance analysis (see {@link pinorobotics.drac.metrics.DracMetrics})
  * <li>Verification of joint limits before each move command to prevent potential damage.
  * <li>Support for different Dorna models (see {@link pinorobotics.drac.DornaRobotModel})

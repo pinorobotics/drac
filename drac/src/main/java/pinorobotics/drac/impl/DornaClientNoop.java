@@ -56,6 +56,7 @@ public class DornaClientNoop implements DornaClient {
             Joints joints,
             boolean isRelative,
             boolean isAsync,
+            boolean isContinuous,
             double velocity,
             double acceleration,
             double jerk)

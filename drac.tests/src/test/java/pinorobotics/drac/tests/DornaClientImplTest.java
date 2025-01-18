@@ -82,7 +82,7 @@ public class DornaClientImplTest {
             var ex =
                     Assertions.assertThrows(
                             DornaClientException.class,
-                            () -> client.jmove(joints, false, false, 0, 0, 0));
+                            () -> client.jmove(joints, false, false, false, 0, 0, 0));
             Assertions.assertEquals(
                     "java.util.concurrent.ExecutionException:"
                         + " pinorobotics.drac.exceptions.DornaClientException: Command  failed with"
@@ -99,7 +99,7 @@ public class DornaClientImplTest {
             var ex =
                     Assertions.assertThrows(
                             PreconditionException.class,
-                            () -> client.jmove(Joints.of(joints), false, false, 0, 0, 0));
+                            () -> client.jmove(Joints.of(joints), false, false, false, 0, 0, 0));
             Assertions.assertEquals(
                     "Joint 2 is out of limits: actual -143.000000, limit [-142.000000, 142.000000]",
                     ex.getMessage());
@@ -133,8 +133,8 @@ public class DornaClientImplTest {
         Assertions.assertEquals(
                 """
 {"cmd":"motor","id":1,"motor":1}
-{"cmd":"jmove","id":2,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":125.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
-{"cmd":"jmove","id":3,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":135.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000}
+{"cmd":"jmove","id":2,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":125.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000,"cont":0}
+{"cmd":"jmove","id":3,"j0":180.000000,"j1":180.000000,"j2":-142.000000,"j3":135.000000,"j4":-0.011250,"j5":0.000000,"j6":0.000000,"j7":0.000000,"rel":0,"vel":25.000000,"accel":500.000000,"jerk":2500.000000,"cont":0}
 {"cmd":"motor","id":4,"motor":0}
                 """,
                 Files.readString(outputLog));

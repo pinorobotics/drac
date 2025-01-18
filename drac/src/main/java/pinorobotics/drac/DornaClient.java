@@ -50,8 +50,10 @@ public interface DornaClient extends AutoCloseable {
     void joint(Joints joints) throws DornaClientException;
 
     /**
-     * Calls {@link #jmove(Joints, boolean, boolean, double, double, double)} with default velocity,
-     * acceleration, jerk
+     * Perform discrete, synchronous joint move.
+     *
+     * <p>Calls {@link #jmove(Joints, boolean, boolean, boolean, double, double, double)} with
+     * default velocity, acceleration, jerk.
      *
      * @see #jmove(Joints, boolean, boolean, double, double, double)
      */
@@ -66,12 +68,15 @@ public interface DornaClient extends AutoCloseable {
             Joints joints,
             boolean isRelative,
             boolean isAsync,
+            boolean isContinuous,
             double velocity,
             double acceleration,
             double jerk)
             throws DornaClientException;
 
     /**
+     * Perform joint move.
+     *
      * @param isOn motor on or off
      * @see <a href="https://doc.dorna.ai/docs/cmd/motor/">motor command</a>
      */

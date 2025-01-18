@@ -212,6 +212,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
             Joints joints,
             boolean isRelative,
             boolean isAsync,
+            boolean isContinuous,
             double velocity,
             double acceleration,
             double jerk) {
@@ -225,7 +226,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         webSocket.request(1);
         var command =
                 """
-                {"cmd":"%s"%s,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f}"""
+                {"cmd":"%s"%s,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f,"cont":%d}"""
                         .formatted(
                                 CommandType.JMOVE,
                                 isAsync ? "" : ",\"id\":" + id,
@@ -240,7 +241,8 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                                 isRelative ? 1 : 0,
                                 velocity,
                                 acceleration,
-                                jerk);
+                                jerk,
+                                isContinuous ? 1 : 0);
         JMOVE_COUNT_METER.add(1);
         webSocket.sendText(command);
         try {
@@ -327,6 +329,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         jmove(
                 joints,
                 isRelative,
+                false,
                 false,
                 dornaClientConfig.velocity(),
                 dornaClientConfig.acceleration(),
