@@ -1,3 +1,12 @@
+# Version 2
+
+- Improve logging
+- Update Gradle to 8.13
+- Support for discrete/continuous move commands
+- Support "No Operation" mode
+
+[drac-v2.0.zip](https://github.com/pinorobotics/drac/raw/main/drac/release/drac-v2.0.zip)
+
 # Version 1
 
 - Adding documentation for DracMetrics

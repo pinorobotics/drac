@@ -16,7 +16,7 @@ Gradle:
 
 ```
 dependencies {
-  implementation 'io.github.pinorobotics:drac:1.0'
+  implementation 'io.github.pinorobotics:drac:2.0'
 }
 ```
 
