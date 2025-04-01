@@ -140,7 +140,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     public int version() throws DornaClientException {
         start();
         var startAt = Instant.now();
-        LOGGER.info("Call version command");
+        LOGGER.fine("Call version command");
         var future = messageProc.await(CommandType.VERSION);
         webSocket.request(1);
         var command =
@@ -164,7 +164,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         verifyLimits(joints);
         start();
         var startAt = Instant.now();
-        LOGGER.info("Call joint command");
+        LOGGER.fine("Call joint command joints={0}", joints);
         var id = idGenerator.nextId();
         var future = messageProc.awaitResult(id);
         webSocket.request(1);
@@ -221,7 +221,9 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         verifyLimits(joints);
         start();
         var startAt = Instant.now();
-        LOGGER.info("Call jmove command");
+        LOGGER.fine(
+                "Call jmove command isRelative={0}, isAsync={1}, isContinuous={2}, joints={3}",
+                isRelative, isAsync, isContinuous, joints);
         var id = isAsync ? -1 : idGenerator.nextId();
         var future =
                 isAsync ? CompletableFuture.completedFuture(null) : messageProc.awaitCompletion(id);
@@ -260,7 +262,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
     @Override
     public void motor(boolean isOn) throws DornaClientException {
         start();
-        LOGGER.info("Call motor command with isOn {0}", isOn);
+        LOGGER.fine("Call motor command isOn={0}", isOn);
         var startAt = Instant.now();
         if (!isOn) {
             if (Joints.EUCLID_DISTANCE_COMPARATOR.compare(getLastMotion().joints(), model().home())
@@ -314,13 +316,13 @@ To move robotic arm to home position automatically, type "h" and press Enter.
 
     @Override
     protected void onClose() {
-        LOGGER.info("Closing connection to {0}", dornaClientConfig.dornaUrl());
+        LOGGER.fine("Closing connection to {0}", dornaClientConfig.dornaUrl());
         webSocket.sendClose();
     }
 
     @Override
     protected void onStart() {
-        LOGGER.info("Opening connection to {0}", dornaClientConfig.dornaUrl());
+        LOGGER.fine("Opening connection to {0}", dornaClientConfig.dornaUrl());
         webSocket =
                 socketFactory.create(
                         dornaClientConfig.dornaUrl(), messageProc, dornaClientConfig.outputLog());
@@ -342,7 +344,7 @@ To move robotic arm to home position automatically, type "h" and press Enter.
     public void play(List<String> script) throws DornaClientException {
         start();
         var startAt = Instant.now();
-        LOGGER.info("Call play command");
+        LOGGER.fine("Call play command");
         PLAY_COUNT_METER.add(1);
         for (var messageJson : script) {
             var id = idGenerator.nextId();

@@ -55,7 +55,7 @@ public interface DornaClient extends AutoCloseable {
      * <p>Calls {@link #jmove(Joints, boolean, boolean, boolean, double, double, double)} with
      * default velocity, acceleration, jerk.
      *
-     * @see #jmove(Joints, boolean, boolean, double, double, double)
+     * @see #jmove(Joints, boolean, boolean, boolean, double, double, double)
      */
     void jmove(Joints joints, boolean isRelative) throws DornaClientException;
 

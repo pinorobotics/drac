@@ -8,13 +8,15 @@
  *
  * <p>Available features:
  *
- * <ul>
+ * <ol>
  *   <li>Configuration of moving velocity, acceleration, and jerk through {@link
  *       pinorobotics.drac.DornaClientConfig.Builder}
  *   <li>Support for asynchronous move commands and caching of last serialized messages (see {@link
- *       pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, double, double, double)})
+ *       pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, boolean, double, double,
+ *       double)})
  *   <li>Support for discrete/continuous move commands (see {@link
- *       pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, double, double, double)})
+ *       pinorobotics.drac.DornaClient#jmove(Joints, boolean, boolean, boolean, double, double,
+ *       double)})
  *   <li>Integration with <a href="https://opentelemetry.io/">OpenTelemetry</a> for metrics tracking
  *       and performance analysis (see {@link pinorobotics.drac.metrics.DracMetrics})
  *   <li>Verification of joint limits before each move command to prevent potential damage.
@@ -27,7 +29,8 @@
  *       pinorobotics.drac.CommandStatus.Predefined})
  *   <li>Noop (no operation) mode which is useful during testing or when no Dorna arm is present
  *       (see {@link pinorobotics.drac.DornaClientConfig.Builder#noopMode})
- * </ul>
+ *   <li>Debug logging
+ * </ol>
  *
  * <b>drac</b> may be helpful for those working with Dorna robots in research, manufacturing, or
  * other relevant fields.
@@ -52,6 +55,23 @@
  *     client.jmove(restPosition, false);
  * }
  * }
+ *
+ * <h2>Logging</h2>
+ *
+ * <p>To keep 3rd party dependencies of <b>drac</b> to minimum it uses <a
+ * href="https://docs.oracle.com/en/java/javase/22/core/java-logging-overview.html">java.util.logging
+ * (JUL)</a> for logging. Many logging libraries provide JUL adapters so you can still use them to
+ * manage its logging.
+ *
+ * <p><b>drac</b> comes with two logging configurations (info, debug). You can enable them by
+ * specifying "java.util.logging.config.file" System property. For example:
+ *
+ * {@snippet lang="plain" :
+ * java -Djava.util.logging.config.file=logging-drac-debug.properties ...
+ * }
+ *
+ * <p>This will generate debug logs inside system temporary folder (for example
+ * /tmp/drac-debug.log).
  *
  * @see <a href="http://pinoweb.freetzi.com/drac">Documentation</a>
  * @see <a
