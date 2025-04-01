@@ -143,8 +143,10 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         LOGGER.info("Call version command");
         var future = messageProc.await(CommandType.VERSION);
         webSocket.request(1);
-        var command = """
-                {"cmd":"%s"}""".formatted(CommandType.VERSION);
+        var command =
+                """
+                {"cmd":"%s"}"""
+                        .formatted(CommandType.VERSION);
         VERSION_COUNT_METER.add(1);
         webSocket.sendText(command);
         try {
@@ -168,7 +170,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         webSocket.request(1);
         var command =
                 """
-                {"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f}"""
+{"cmd":"%s","id":%d,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f}"""
                         .formatted(
                                 CommandType.JOINT,
                                 id,
@@ -226,7 +228,7 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
         webSocket.request(1);
         var command =
                 """
-                {"cmd":"%s"%s,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f,"cont":%d}"""
+{"cmd":"%s"%s,"j0":%f,"j1":%f,"j2":%f,"j3":%f,"j4":%f,"j5":%f,"j6":%f,"j7":%f,"rel":%d,"vel":%f,"accel":%f,"jerk":%f,"cont":%d}"""
                         .formatted(
                                 CommandType.JMOVE,
                                 isAsync ? "" : ",\"id\":" + id,
@@ -268,13 +270,13 @@ public class DornaClientImpl extends IdempotentService implements DornaClient {
                             """
 
 
-                            Received request to turn off the motor. Turning off motor can potentially cause robot arm to fall [Dorna Robot User Manual (Last update on Aug 30, 2023): Dorna Lab: Motors]
-                            To disable this warning see DornaClientConfig.
+Received request to turn off the motor. Turning off motor can potentially cause robot arm to fall [Dorna Robot User Manual (Last update on Aug 30, 2023): Dorna Lab: Motors]
+To disable this warning see DornaClientConfig.
 
-                            If it is safe to proceed please press Enter.
-                            Otherwise please move robotic arm into a safe position first and then press Enter.
-                            To move robotic arm to home position automatically, type "h" and press Enter.
-                            """);
+If it is safe to proceed please press Enter.
+Otherwise please move robotic arm into a safe position first and then press Enter.
+To move robotic arm to home position automatically, type "h" and press Enter.
+""");
                     Unchecked.run(
                             () -> {
                                 var key = System.in.read();

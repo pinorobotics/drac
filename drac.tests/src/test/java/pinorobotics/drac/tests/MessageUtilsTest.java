@@ -31,9 +31,9 @@ public class MessageUtilsTest {
         return Stream.of(
                 new TestCase(
                         """
-                {"id": 111, "cmd":"jmove","rel":0,"j0":-10}""",
+                        {"id": 111, "cmd":"jmove","rel":0,"j0":-10}""",
                         """
-                {"id":222, "cmd":"jmove","rel":0,"j0":-10}"""),
+                        {"id":222, "cmd":"jmove","rel":0,"j0":-10}"""),
                 new TestCase(
                         """
                         {"id" :111, "cmd":"jmove","rel":0,"j0":-10}""",
